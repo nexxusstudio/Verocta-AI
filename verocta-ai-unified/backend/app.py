@@ -31,7 +31,7 @@ from routes import *
 
 if __name__ == '__main__':
     print('🚀 Starting VeroctaAI Flask Application...')
-    print('📍 Local URL: http://127.0.0.1:5001')
+    print('📍 Local URL: http://localhost:8000')
     print('📊 Platform: Financial Intelligence & SpendScore Analysis')
     
     # Check OpenAI API key
@@ -43,5 +43,5 @@ if __name__ == '__main__':
         print('💡 Fix: Set environment variable or create .env file with your API key')
     
     print('📁 CSV Support: QuickBooks, Wave, Revolut, Xero')
-    print('✅ Server starting on port 5001...')
-    app.run(host='127.0.0.1', port=5001, debug=True)  # type: ignore
+    print('✅ Server starting on port 8000...')
+    app.run(host='localhost', port=8000, debug=True)
