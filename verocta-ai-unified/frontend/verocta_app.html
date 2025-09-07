@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verocta Mini — Single-file App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Tiny custom styles for modals and animations */
+    .modal-backdrop { background: rgba(0,0,0,0.45); }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.01);} 100% { transform: scale(1);} }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+<!--
+  Verocta Mini — Single-file app
+  Purpose: lightweight frontend demo for authentication, CRUD of "reports", real-time sync, and AI-insight simulation.
+  Filename: verocta_app.html
+-->
+
+<div id="app" class="min-h-screen flex flex-col">
+  <header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <svg class="w-8 h-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3 0 .538.166 1.038.448 1.458L12 18l2.552-5.542A2.996 2.996 0 0015 11c0-1.657-1.343-3-3-3z"/></svg>
+        <div>
+          <h1 class="font-semibold text-lg">Verocta Mini</h1>
+          <p class="text-xs text-gray-500">Spend insights demo — single-file app</p>
+        </div>
+      </div>
+      <div id="header-actions" class="flex items-center space-x-3">
+        <!-- dynamic user controls -->
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
+    <div id="app-content"></div>
+  </main>
+
+  <footer class="bg-white border-t py-3">
+    <div class="max-w-7xl mx-auto px-4 text-sm text-gray-500">Verocta Mini — client-only demo • All data stored locally in your browser.</div>
+  </footer>
+</div>
+
+<!-- Modals -->
+<div id="modal-root"></div>
+
+<script>
+// =====================
+// Verocta Mini — Single-file app
+// =====================
+
+// Requirements checklist (extracted):
+// - Single HTML file with Tailwind CDN -> Done
+// - Basic signup/login flow (client-side) -> Implemented
+// - CRUD items (reports) -> Implemented
+// - Real-time updates via in-browser mechanism -> BroadcastChannel + simulation
+// - Simulated Gemini API for insights with loading state -> Implemented
+// - No external JS except Tailwind -> Compliant
+// - Error handling via message box modal -> Implemented
+// - All state in JS and mock data included -> Implemented
+
+// ---------------------
+// Simple in-browser data layer
+// ---------------------
+const STORAGE_KEYS = {
+  USERS: 'verocta_users_v1',
+  REPORTS: 'verocta_reports_v1',
+  AUDIT: 'verocta_audit_v1',
+  SESSION: 'verocta_session_v1'
+};
+
+// Utility: simple ID generator
+function uid(prefix='id'){
+  return prefix + '_' + Math.random().toString(36).slice(2,9);
+}
+
+// Web Crypto: derive password hash using PBKDF2
+async function hashPassword(password, salt){
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveBits']);
+  const derived = await crypto.subtle.deriveBits({name:'PBKDF2', salt: enc.encode(salt), iterations: 120000, hash: 'SHA-256'}, keyMaterial, 256);
+  return btoa(String.fromCharCode(...new Uint8Array(derived)));
+}
+
+// Session token simulation
+function createToken(userId, role){
+  const now = Date.now();
+  const accessExp = now + 15 * 60 * 1000; // 15 min
+  const refreshExp = now + 7 * 24 * 60 * 60 * 1000; // 7 days
+  const token = { userId, role, accessExp, refreshExp };
+  return btoa(JSON.stringify(token));
+}
+function parseToken(t){ try { return JSON.parse(atob(t)); } catch(e){ return null; } }
+
+// Storage helpers
+function load(key, fallback=null){ try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch(e){ return fallback; } }
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+// Mock initial data if empty
+function seedData(){
+  if(!load(STORAGE_KEYS.USERS)){
+    const users = [
+      { id: 'u_admin', email: 'admin@verocta.local', salt:'s1', passHash: null, role: 'admin', createdAt: Date.now() },
+      { id: 'u_demo', email: 'user@verocta.local', salt:'s2', passHash: null, role: 'user', createdAt: Date.now() }
+    ];
+    // set simple password hashes (password: demo123)
+    Promise.all([
+      hashPassword('admin123', users[0].salt).then(h=> users[0].passHash=h),
+      hashPassword('demo123', users[1].salt).then(h=> users[1].passHash=h)
+    ]).then(()=> save(STORAGE_KEYS.USERS, users));
+  }
+  if(!load(STORAGE_KEYS.REPORTS)){
+    const now = Date.now();
+    const reports = [
+      { id: uid('r'), title: 'August Spend Analysis', description: 'Summary for August', ownerId: 'u_demo', status: 'Ready', createdAt: now - 86400000 * 10, updatedAt: now - 86400000 * 5, data: { total: 4321.45, categories: { Marketing: 1200, SaaS: 800, Travel: 1500 } } },
+      { id: uid('r'), title: 'Q2 Vendor Cleanup', description: 'Subscriptions and duplicates', ownerId: 'u_demo', status: 'Draft', createdAt: now - 86400000 * 40, updatedAt: now - 86400000 * 40, data: { total: 12000, categories: { Tools: 6000, Payroll: 4000, Misc: 2000 } } }
+    ];
+    save(STORAGE_KEYS.REPORTS, reports);
+  }
+  if(!load(STORAGE_KEYS.AUDIT)) save(STORAGE_KEYS.AUDIT, []);
+}
+
+seedData();
+
+// Real-time channel
+const channel = new BroadcastChannel('verocta_channel_v1');
+channel.onmessage = (ev)=>{
+  if(ev.data && ev.data.type === 'reports_updated'){
+    renderReports();
+    showToast('Reports updated in real-time');
+  }
+};
+
+// Simple toast/modal message box
+function showMessage({title='', message='', type='info', timeout=4000}){
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `
+    <div id="msg" class="fixed inset-0 flex items-end sm:items-center justify-center p-4 pointer-events-none">
+      <div class="pointer-events-auto max-w-sm w-full bg-white border ${type==='error'?'border-red-300':'border-gray-200'} shadow-lg rounded-lg p-4">
+        <div class="flex items-start space-x-3">
+          <div class="flex-1">
+            <div class="text-sm font-semibold">${title}</div>
+            <div class="text-sm text-gray-600 mt-1">${message}</div>
+          </div>
+          <div class="flex-shrink-0">
+            <button id="msg-close" class="text-gray-400 hover:text-gray-600">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('msg-close').onclick = ()=>{ root.innerHTML=''; };
+  if(timeout) setTimeout(()=>{ root.innerHTML=''; }, timeout);
+}
+function showToast(msg){ showMessage({title:'', message: msg, timeout: 2500}); }
+
+// Audit log
+function pushAudit(entry){ const audit = load(STORAGE_KEYS.AUDIT, []); audit.unshift({ id: uid('a'), time: Date.now(), ...entry }); save(STORAGE_KEYS.AUDIT, audit); }
+
+// Auth flows (client-side simulated)
+async function signup(email, password, role='user'){
+  const users = load(STORAGE_KEYS.USERS, []);
+  if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())) throw new Error('Email already registered');
+  const salt = Math.random().toString(36).slice(2,9);
+  const passHash = await hashPassword(password, salt);
+  const user = { id: uid('u'), email, salt, passHash, role, createdAt: Date.now() };
+  users.push(user); save(STORAGE_KEYS.USERS, users);
+  pushAudit({type:'signup', userId: user.id, email});
+  return user;
+}
+
+async function login(email, password){
+  const users = load(STORAGE_KEYS.USERS, []);
+  const user = users.find(u=>u.email.toLowerCase()===email.toLowerCase());
+  if(!user){ pushAudit({type:'login_failed', email}); throw new Error('Invalid credentials'); }
+  const passHash = await hashPassword(password, user.salt);
+  if(passHash !== user.passHash){ pushAudit({type:'login_failed', userId: user.id}); throw new Error('Invalid credentials'); }
+  const token = createToken(user.id, user.role);
+  save(STORAGE_KEYS.SESSION, { token, createdAt: Date.now() });
+  pushAudit({type:'login', userId: user.id});
+  return { user, token };
+}
+
+function logout(){ localStorage.removeItem(STORAGE_KEYS.SESSION); pushAudit({type:'logout'}); renderApp(); }
+
+function getSession(){ const s = load(STORAGE_KEYS.SESSION); if(!s) return null; const parsed = parseToken(s.token); if(!parsed) return null; if(parsed.accessExp < Date.now()) return null; const users = load(STORAGE_KEYS.USERS, []); const user = users.find(u=>u.id===parsed.userId); return user ? { user, token: s.token } : null; }
+
+// CRUD for reports
+function listReports(){ return load(STORAGE_KEYS.REPORTS, []).sort((a,b)=> b.updatedAt - a.updatedAt); }
+function getReport(id){ return listReports().find(r=>r.id===id); }
+function saveReport(report){ const reports = load(STORAGE_KEYS.REPORTS, []); const now = Date.now(); if(report.id){ const ix = reports.findIndex(r=>r.id===report.id); if(ix>=0){ report.updatedAt = now; reports[ix] = report; } else { report.updatedAt = now; report.createdAt = now; reports.push(report);} } else { report.id = uid('r'); report.createdAt = now; report.updatedAt = now; reports.push(report); }
+  save(STORAGE_KEYS.REPORTS, reports); channel.postMessage({type:'reports_updated'});
+  pushAudit({type:'report_saved', reportId: report.id});
+}
+function deleteReport(id){ let reports = load(STORAGE_KEYS.REPORTS, []); reports = reports.filter(r=>r.id!==id); save(STORAGE_KEYS.REPORTS, reports); channel.postMessage({type:'reports_updated'}); pushAudit({type:'report_deleted', reportId:id}); }
+
+// Simulated Gemini API call (fake, local)
+function simulateGemini(report){
+  return new Promise((resolve)=>{
+    // produce deterministic-ish insights using report data
+    const seed = (report.data && report.data.total) ? Math.floor(report.data.total%100) : Math.floor(Math.random()*100);
+    setTimeout(()=>{
+      const insights = [];
+      const scores = Math.max(30, Math.min(95, Math.floor(100 - seed/2 + (Math.random()*10-5))));
+      insights.push({ title: 'SpendScore', text: `Estimated SpendScore: ${scores}/100.`, priority: 'high' });
+      insights.push({ title: 'Top category', text: `Top category appears to be ${Object.keys(report.data?.categories || {Unknown:'0'})[0] || 'Unknown'}. Consider renegotiation or consolidation.`, priority: 'medium' });
+      if(seed % 2 === 0) insights.push({ title: 'Duplicate subscriptions', text: 'Detected likely duplicate vendor entries. Consider review.', priority: 'low' });
+      insights.push({ title: 'Forecast', text: `Projected next-month spend: $${((report.data?.total||1000)*1.08).toFixed(2)}.`, priority: 'medium' });
+      resolve({ insights, generatedAt: Date.now() });
+    }, 1500 + Math.random()*1600);
+  });
+}
+
+// UI Rendering
+const rootContent = document.getElementById('app-content');
+const headerActions = document.getElementById('header-actions');
+
+function renderApp(){
+  const session = getSession();
+  headerActions.innerHTML = '';
+  if(session){
+    const u = session.user;
+    const userBtn = document.createElement('div');
+    userBtn.className = 'flex items-center space-x-3';
+    userBtn.innerHTML = `
+      <div class="text-sm text-right">
+        <div class="font-medium">${u.email}</div>
+        <div class="text-xs text-gray-500">${u.role}</div>
+      </div>
+      <div>
+        <button id="signout" class="bg-indigo-600 text-white px-3 py-2 rounded text-sm">Sign out</button>
+      </div>
+    `;
+    headerActions.appendChild(userBtn);
+    document.getElementById('signout')?.addEventListener('click', ()=>{ logout(); });
+    renderDashboard();
+  } else {
+    // show Sign in / Up buttons
+    headerActions.innerHTML = `
+      <div class="hidden sm:flex items-center space-x-2">
+        <button id="btn-login" class="px-3 py-2 rounded text-sm border">Sign in</button>
+        <button id="btn-signup" class="px-3 py-2 rounded text-sm bg-indigo-600 text-white">Sign up</button>
+      </div>
+    `;
+    document.getElementById('btn-login').addEventListener('click', ()=>{ showAuth('login'); });
+    document.getElementById('btn-signup').addEventListener('click', ()=>{ showAuth('signup'); });
+    renderLanding();
+  }
+}
+
+function renderLanding(){
+  rootContent.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white p-6 rounded shadow">
+        <h2 class="text-lg font-semibold">Welcome to Verocta Mini</h2>
+        <p class="mt-2 text-gray-600">A client-only demo that shows authentication, CRUD reports, real-time sync, and simulated AI insights. Sign up to try it.</p>
+        <div class="mt-4">
+          <button id="start-signup" class="bg-indigo-600 text-white px-4 py-2 rounded">Get started (free)</button>
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded shadow">
+        <h3 class="font-semibold">Demo accounts</h3>
+        <ul class="mt-2 text-sm text-gray-700 space-y-1">
+          <li><strong>Admin</strong> — admin@verocta.local / admin123</li>
+          <li><strong>User</strong> — user@verocta.local / demo123</li>
+        </ul>
+        <p class="text-xs text-gray-500 mt-3">This is local only. No backend involved. Use the demo accounts to explore admin features.</p>
+      </div>
+    </div>
+  `;
+  document.getElementById('start-signup').addEventListener('click', ()=> showAuth('signup'));
+}
+
+function renderDashboard(){
+  const session = getSession();
+  const u = session.user;
+  // Left: controls, Right: report list
+  rootContent.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <aside class="lg:col-span-1 bg-white p-4 rounded shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold">Hello,</div>
+            <div class="font-medium text-indigo-700 text-lg">${u.email}</div>
+          </div>
+        </div>
+        <nav class="mt-6 space-y-2">
+          <button id="nav-new" class="w-full text-left px-3 py-2 rounded hover:bg-indigo-50">+ New Report</button>
+          <button id="nav-refresh" class="w-full text-left px-3 py-2 rounded hover:bg-indigo-50">Refresh</button>
+          ${u.role==='admin' ? '<button id="nav-admin" class="w-full text-left px-3 py-2 rounded hover:bg-indigo-50">Admin Dashboard</button>' : ''}
+        </nav>
+        <div class="mt-4 text-xs text-gray-500">Real-time: BroadcastChannel • Local-only</div>
+      </aside>
+      <section class="lg:col-span-3">
+        <div class="bg-white p-4 rounded shadow mb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Reports</h2>
+            <p class="text-sm text-gray-500">Create, edit, and generate insights for reports.</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <input id="search" placeholder="Search reports..." class="border rounded px-3 py-2 text-sm" />
+            <select id="filter-status" class="border rounded px-2 py-2 text-sm">
+              <option value="">All</option>
+              <option>Draft</option>
+              <option>Ready</option>
+            </select>
+          </div>
+        </div>
+        <div id="reports-list"></div>
+      </section>
+    </div>
+  `;
+  document.getElementById('nav-new').addEventListener('click', ()=> openReportModal());
+  document.getElementById('nav-refresh').addEventListener('click', ()=> renderReports(true));
+  if(u.role==='admin') document.getElementById('nav-admin').addEventListener('click', ()=> renderAdmin());
+  document.getElementById('search').addEventListener('input', ()=> renderReports());
+  document.getElementById('filter-status').addEventListener('change', ()=> renderReports());
+  renderReports();
+}
+
+function renderReports(force=false){
+  const session = getSession(); if(!session) return;
+  const u = session.user;
+  const q = document.getElementById('search')?.value?.toLowerCase() || '';
+  const statusFilter = document.getElementById('filter-status')?.value || '';
+  let reports = listReports();
+  if(q) reports = reports.filter(r=> r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q));
+  if(statusFilter) reports = reports.filter(r=> r.status===statusFilter);
+
+  const container = document.getElementById('reports-list');
+  if(!container) return;
+  if(reports.length===0) container.innerHTML = `<div class="bg-white p-6 rounded shadow text-center text-gray-500">No reports yet. Create one.</div>`;
+  else {
+    container.innerHTML = reports.map(r=>{
+      const mine = (r.ownerId === u.id) || u.role==='admin';
+      const total = r.data?.total ? `$${r.data.total.toFixed(2)}` : '—';
+      const updated = new Date(r.updatedAt).toLocaleString();
+      return `
+      <div class="bg-white p-4 rounded shadow mb-3 transition hover:shadow-lg">
+        <div class="flex justify-between items-start">
+          <div>
+            <div class="flex items-center space-x-2">
+              <div class="text-lg font-semibold">${escapeHtml(r.title)}</div>
+              <div class="text-xs text-gray-500 px-2 py-1 rounded bg-gray-50">${escapeHtml(r.status)}</div>
+            </div>
+            <div class="text-sm text-gray-600">${escapeHtml(r.description)}</div>
+            <div class="text-xs text-gray-400 mt-2">Updated: ${updated}</div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <div class="text-right text-sm text-gray-600">${total}</div>
+            <div class="flex items-center space-x-2">
+              <button data-id="${r.id}" class="btn-insights bg-yellow-50 px-3 py-1 rounded text-sm">Insights</button>
+              ${mine? `<button data-id="${r.id}" class="btn-edit bg-indigo-600 text-white px-3 py-1 rounded text-sm">Edit</button>` : ''}
+              ${mine? `<button data-id="${r.id}" class="btn-delete bg-red-50 text-red-600 px-3 py-1 rounded text-sm">Delete</button>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // wire buttons
+  container.querySelectorAll('.btn-edit').forEach(b=> b.addEventListener('click', (e)=> openReportModal(getReport(b.dataset.id))));
+  container.querySelectorAll('.btn-delete').forEach(b=> b.addEventListener('click', (e)=> confirmDelete(b.dataset.id)));
+  container.querySelectorAll('.btn-insights').forEach(b=> b.addEventListener('click', (e)=> openInsights(b.dataset.id)));
+}
+
+function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+// Report create/edit modal
+function openReportModal(report=null){
+  const isEdit = !!report;
+  const modal = document.getElementById('modal-root');
+  modal.innerHTML = `
+    <div class="fixed inset-0 flex items-center justify-center modal-backdrop">
+      <div class="bg-white w-full max-w-2xl rounded shadow-lg p-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold">${isEdit? 'Edit' : 'New'} Report</h3>
+          <button id="close-modal" class="text-gray-500">✕</button>
+        </div>
+        <div class="mt-4 space-y-3">
+          <input id="r-title" class="w-full border rounded px-3 py-2" placeholder="Title" value="${isEdit? escapeHtml(report.title):''}" />
+          <textarea id="r-desc" class="w-full border rounded px-3 py-2" placeholder="Short description">${isEdit? escapeHtml(report.description):''}</textarea>
+          <div class="grid grid-cols-2 gap-3">
+            <input id="r-total" type="number" step="0.01" class="w-full border rounded px-3 py-2" placeholder="Total spend" value="${isEdit? (report.data?.total||0):''}" />
+            <select id="r-status" class="w-full border rounded px-3 py-2">
+              <option ${isEdit && report.status==='Draft' ? 'selected':''}>Draft</option>
+              <option ${isEdit && report.status==='Ready' ? 'selected':''}>Ready</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-4 flex justify-end space-x-2">
+          <button id="save-report" class="bg-indigo-600 text-white px-4 py-2 rounded">Save</button>
+          <button id="cancel-report" class="px-4 py-2 rounded border">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('close-modal').addEventListener('click', ()=> modal.innerHTML='');
+  document.getElementById('cancel-report').addEventListener('click', ()=> modal.innerHTML='');
+  document.getElementById('save-report').addEventListener('click', ()=> {
+    const title = document.getElementById('r-title').value.trim();
+    const desc = document.getElementById('r-desc').value.trim();
+    const total = parseFloat(document.getElementById('r-total').value) || 0;
+    const status = document.getElementById('r-status').value;
+    if(!title){ showMessage({title:'Validation', message:'Title is required', type:'error'}); return; }
+    const session = getSession(); if(!session) { showMessage({title:'Auth', message:'Please sign in', type:'error'}); modal.innerHTML=''; return; }
+    const model = report ? Object.assign({}, report) : { id: null };
+    model.title = title; model.description = desc; model.status = status; model.ownerId = model.ownerId || session.user.id; model.data = { total, categories: model.data?.categories || {} };
+    saveReport(model);
+    showToast('Report saved');
+    modal.innerHTML='';
+    renderReports();
+  });
+}
+
+function confirmDelete(id){
+  const modal = document.getElementById('modal-root');
+  modal.innerHTML = `
+    <div class="fixed inset-0 flex items-center justify-center modal-backdrop">
+      <div class="bg-white w-full max-w-md rounded shadow-lg p-6">
+        <h3 class="font-semibold">Delete report?</h3>
+        <p class="text-sm text-gray-600 mt-2">This will remove the report permanently from local storage.</p>
+        <div class="mt-4 flex justify-end space-x-2">
+          <button id="del-ok" class="bg-red-600 text-white px-3 py-2 rounded">Delete</button>
+          <button id="del-cancel" class="px-3 py-2 rounded border">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('del-cancel').addEventListener('click', ()=> modal.innerHTML='');
+  document.getElementById('del-ok').addEventListener('click', ()=>{ deleteReport(id); modal.innerHTML=''; showToast('Report deleted'); renderReports(); });
+}
+
+// Insights modal with loading state
+function openInsights(id){
+  const report = getReport(id); if(!report) return; const modal = document.getElementById('modal-root');
+  modal.innerHTML = `
+    <div class="fixed inset-0 flex items-center justify-center modal-backdrop">
+      <div class="bg-white w-full max-w-2xl rounded shadow-lg p-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold">Insights — ${escapeHtml(report.title)}</h3>
+          <button id="close-insights" class="text-gray-500">✕</button>
+        </div>
+        <div id="insights-body" class="mt-4 text-sm text-gray-700">Generating insights…</div>
+        <div class="mt-4 flex justify-end">
+          <button id="close-insights-2" class="px-3 py-2 rounded border">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('close-insights').addEventListener('click', ()=> modal.innerHTML='');
+  document.getElementById('close-insights-2').addEventListener('click', ()=> modal.innerHTML='');
+  const body = document.getElementById('insights-body');
+  // show loading spinner
+  body.innerHTML = `<div class="flex items-center space-x-3"><svg class="animate-spin h-6 w-6 text-indigo-600" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"/></svg><div>Generating insights (simulated Gemini)…</div></div>`;
+  simulateGemini(report).then(res=>{
+    const items = res.insights.map(i=> `<div class="border-l-4 ${i.priority==='high'?'border-red-400':'border-indigo-400'} bg-gray-50 p-3 rounded mb-2"><div class="font-semibold">${escapeHtml(i.title)}</div><div class="text-sm text-gray-700">${escapeHtml(i.text)}</div></div>`).join('');
+    body.innerHTML = `<div class="text-xs text-gray-500 mb-2">Generated ${(new Date(res.generatedAt)).toLocaleString()}</div>${items}`;
+  });
+}
+
+// Auth modal
+function showAuth(mode='login'){
+  const modal = document.getElementById('modal-root');
+  modal.innerHTML = `
+    <div class="fixed inset-0 flex items-center justify-center modal-backdrop">
+      <div class="bg-white w-full max-w-md rounded shadow-lg p-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold">${mode==='login'?'Sign in':'Create account'}</h3>
+          <button id="close-auth" class="text-gray-500">✕</button>
+        </div>
+        <div class="mt-4 space-y-3">
+          <input id="auth-email" class="w-full border rounded px-3 py-2" placeholder="Email" />
+          <input id="auth-pass" type="password" class="w-full border rounded px-3 py-2" placeholder="Password" />
+          ${mode==='signup' ? '<select id="auth-role" class="w-full border rounded px-3 py-2"><option value="user">User</option><option value="admin">Admin</option></select>' : ''}
+        </div>
+        <div class="mt-4 flex justify-end space-x-2">
+          <button id="auth-submit" class="bg-indigo-600 text-white px-4 py-2 rounded">${mode==='login'?'Sign in':'Sign up'}</button>
+          <button id="auth-cancel" class="px-4 py-2 rounded border">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('close-auth').addEventListener('click', ()=> modal.innerHTML='');
+  document.getElementById('auth-cancel').addEventListener('click', ()=> modal.innerHTML='');
+  document.getElementById('auth-submit').addEventListener('click', async ()=>{
+    const email = document.getElementById('auth-email').value.trim();
+    const pass = document.getElementById('auth-pass').value;
+    if(!email || !pass){ showMessage({title:'Validation', message:'Email and password required', type:'error'}); return; }
+    try{
+      if(mode==='signup'){
+        const role = document.getElementById('auth-role').value;
+        await signup(email, pass, role);
+        showMessage({title:'Signed up', message:'Account created. Please sign in.'});
+        modal.innerHTML = '';
+        showAuth('login');
+      } else {
+        await login(email, pass);
+        showToast('Signed in');
+        modal.innerHTML = '';
+        renderApp();
+      }
+    } catch(err){ showMessage({title:'Auth error', message: err.message, type:'error'}); }
+  });
+}
+
+// Admin view
+function renderAdmin(){
+  const users = load(STORAGE_KEYS.USERS, []);
+  const audit = load(STORAGE_KEYS.AUDIT, []);
+  rootContent.innerHTML = `
+    <div class="space-y-4">
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="font-semibold">Users</h3>
+        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+          ${users.map(u=> `<div class="border rounded p-3 text-sm"><div class="font-medium">${escapeHtml(u.email)}</div><div class="text-xs text-gray-500">Role: ${u.role}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="font-semibold">Audit log (latest)</h3>
+        <div class="mt-3 text-xs text-gray-700 space-y-2 max-h-64 overflow-auto">
+          ${audit.map(a=> `<div class="border-b pb-2"><div class="text-xs text-gray-500">${(new Date(a.time)).toLocaleString()}</div><div>${escapeHtml(a.type)} ${a.email? ' • '+escapeHtml(a.email):''} ${a.userId? ' • '+escapeHtml(a.userId):''}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// small util to simulate other users creating reports (to demo real-time updates)
+let simulationInterval = null;
+function startSimulation(){
+  if(simulationInterval) return;
+  simulationInterval = setInterval(()=>{
+    const reports = load(STORAGE_KEYS.REPORTS, []);
+    if(Math.random() < 0.3){
+      const newR = { id: uid('r'), title: 'Auto report '+ new Date().toLocaleTimeString(), description: 'Auto-generated for demo', ownerId: 'u_demo', status: 'Ready', createdAt: Date.now(), updatedAt: Date.now(), data: { total: Math.random()*10000, categories: { Misc: 200 } } };
+      reports.push(newR); save(STORAGE_KEYS.REPORTS, reports); channel.postMessage({type:'reports_updated'});
+    }
+  }, 8000);
+}
+startSimulation();
+
+// Initial render
+renderApp();
+
+</script>
+</body>
+</html>

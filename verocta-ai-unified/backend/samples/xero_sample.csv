@@ -1,0 +1,21 @@
+Date,Account ID,Amount,Total,Counterparty,Counterparty Account Number,Payment Method,Transaction ID,Description,Product,Category,State
+2024-01-15,GB29 REVO 0099 7000 0000 01,156.78,156.78,Staples Inc.,ACC-STG-001,card,txn_001,Office supplies purchase,Business,Office Expenses,COMPLETED
+2024-01-18,GB29 REVO 0099 7000 0000 01,299.99,456.77,Microsoft Corp.,ACC-MST-002,card,txn_002,Office 365 subscription,Business,Software & Apps,COMPLETED
+2024-01-22,GB29 REVO 0099 7000 0000 01,89.50,546.27,PrintShop Local,ACC-PSL-003,card,txn_003,Marketing materials,Business,Marketing Expenses,COMPLETED
+2024-01-25,GB29 REVO 0099 7000 0000 01,125.00,671.27,Comcast Business,ACC-CMB-004,card,txn_004,Internet service,Business,Telecommunications,COMPLETED
+2024-01-28,GB29 REVO 0099 7000 0000 01,750.00,1421.27,Legal Associates LLC,ACC-LAL-005,transfer,txn_005,Legal consultation,Business,Professional Fees,COMPLETED
+2024-02-01,GB29 REVO 0099 7000 0000 01,485.20,1906.47,United Airlines,ACC-UAL-006,card,txn_006,Business travel,Business,Travel & Entertainment,COMPLETED
+2024-02-05,GB29 REVO 0099 7000 0000 01,2500.00,4406.47,Downtown Properties,ACC-DTP-007,transfer,txn_007,Office rent,Business,Rent & Utilities,COMPLETED
+2024-02-08,GB29 REVO 0099 7000 0000 01,178.45,4584.92,City Power Company,ACC-CPC-008,transfer,txn_008,Electricity bill,Business,Rent & Utilities,COMPLETED
+2024-02-12,GB29 REVO 0099 7000 0000 01,79.99,4664.91,Adobe Systems,ACC-ADB-009,card,txn_009,Creative Cloud,Business,Software & Apps,COMPLETED
+2024-02-15,GB29 REVO 0099 7000 0000 01,234.56,4899.47,Amazon Business,ACC-AMB-010,card,txn_010,Office equipment,Business,Office Expenses,COMPLETED
+2024-02-18,GB29 REVO 0099 7000 0000 01,1200.00,6099.47,Google Ads,ACC-GAD-011,card,txn_011,Digital advertising,Business,Marketing Expenses,COMPLETED
+2024-02-22,GB29 REVO 0099 7000 0000 01,450.00,6549.47,Accountant Pro,ACC-ACP-012,transfer,txn_012,Bookkeeping services,Business,Professional Fees,COMPLETED
+2024-02-25,GB29 REVO 0099 7000 0000 01,85.00,6634.47,Slack Technologies,ACC-SLK-013,card,txn_013,Team communication,Business,Software & Apps,COMPLETED
+2024-02-28,GB29 REVO 0099 7000 0000 01,189.99,6824.46,Hotel Express,ACC-HTX-014,card,txn_014,Accommodation,Business,Travel & Entertainment,COMPLETED
+2024-03-01,GB29 REVO 0099 7000 0000 01,345.67,7170.13,Best Buy Business,ACC-BBB-015,card,txn_015,Computer accessories,Business,Office Expenses,COMPLETED
+2024-03-05,GB29 REVO 0099 7000 0000 01,98.50,7268.63,Internet Plus,ACC-ITP-016,transfer,txn_016,Phone service,Business,Telecommunications,COMPLETED
+2024-03-08,GB29 REVO 0099 7000 0000 01,567.80,7836.43,Local Print Shop,ACC-LPS-017,card,txn_017,Trade show materials,Business,Marketing Expenses,COMPLETED
+2024-03-12,GB29 REVO 0099 7000 0000 01,1500.00,9336.43,Consultant LLC,ACC-CNS-018,transfer,txn_018,Strategy consulting,Business,Professional Fees,COMPLETED
+2024-03-15,GB29 REVO 0099 7000 0000 01,150.00,9486.43,Salesforce Inc.,ACC-SFC-019,card,txn_019,CRM software,Business,Software & Apps,COMPLETED
+2024-03-18,GB29 REVO 0099 7000 0000 01,678.90,10165.33,Delta Airlines,ACC-DAL-020,card,txn_020,Conference travel,Business,Travel & Entertainment,COMPLETED

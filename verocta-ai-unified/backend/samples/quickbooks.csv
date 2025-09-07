@@ -1,0 +1,21 @@
+Date,Transaction Type,Description,Name,Memo/Description,Account,Class,Amount
+01/15/2024,Expense,Office Supplies,Staples Inc.,"Printer paper, pens, folders",Office Expenses,Admin,156.78
+01/18/2024,Expense,Software Subscription,Microsoft Corp.,"Office 365 Business Premium",Software & Apps,IT,-299.99
+01/22/2024,Expense,Marketing Materials,PrintShop Local,"Business cards, brochures",Marketing Expenses,Marketing,89.50
+01/25/2024,Expense,Internet Service,Comcast Business,"Monthly internet service",Telecommunications,IT,125.00
+01/28/2024,Expense,Professional Services,Legal Associates LLC,"Contract review services",Professional Fees,Legal,750.00
+02/01/2024,Expense,Travel Expenses,United Airlines,"Flight to client meeting",Travel & Entertainment,Sales,485.20
+02/05/2024,Expense,Office Rent,Downtown Properties,"Monthly office rent",Rent & Utilities,Admin,2500.00
+02/08/2024,Expense,Utilities,City Power Company,"Electricity bill",Rent & Utilities,Admin,178.45
+02/12/2024,Expense,Software Subscription,Adobe Systems,"Creative Cloud subscription",Software & Apps,Marketing,79.99
+02/15/2024,Expense,Office Supplies,Amazon Business,"Desk supplies, cables",Office Expenses,Admin,234.67
+02/18/2024,Expense,Marketing Campaign,Google Ads,"Online advertising campaign",Marketing Expenses,Marketing,1250.00
+02/22/2024,Expense,Professional Development,Training Company,"Employee training course",Education & Training,HR,899.00
+02/25/2024,Expense,Equipment Purchase,Tech Solutions,"Monitor and keyboard",Computer Equipment,IT,567.89
+02/28/2024,Expense,Telecommunications,Verizon Business,"Mobile phone service",Telecommunications,IT,189.99
+03/01/2024,Expense,Insurance,Business Insurance Co.,"General liability insurance",Insurance,Admin,435.00
+03/05/2024,Expense,Software License,Salesforce.com,"CRM software license",Software & Apps,Sales,150.00
+03/08/2024,Expense,Office Cleaning,CleanPro Services,"Monthly cleaning service",Maintenance & Repairs,Admin,320.00
+03/12/2024,Expense,Bank Fees,First National Bank,"Monthly account fees",Bank Service Charges,Finance,25.00
+03/15/2024,Expense,Client Entertainment,Restaurant Downtown,"Client dinner meeting",Travel & Entertainment,Sales,178.50
+03/18/2024,Expense,Shipping Costs,FedEx,"Package delivery services",Shipping & Delivery,Operations,67.89

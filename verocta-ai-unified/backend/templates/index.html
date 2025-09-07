@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-gradient py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold text-white mb-4">
+                    Smart Financial Insights with AI
+                </h1>
+                <p class="lead text-white-50 mb-4">
+                    Upload your financial data and get instant AI-powered recommendations to optimize your spending, 
+                    reduce costs, and improve your financial health score.
+                </p>
+                <div class="d-flex gap-3 mb-4">
+                    <div class="feature-badge">
+                        <i data-feather="zap" class="text-warning"></i>
+                        <span>AI-Powered</span>
+                    </div>
+                    <div class="feature-badge">
+                        <i data-feather="shield" class="text-success"></i>
+                        <span>Secure</span>
+                    </div>
+                    <div class="feature-badge">
+                        <i data-feather="clock" class="text-info"></i>
+                        <span>Instant Results</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="upload-card">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-center mb-4">
+                                <i data-feather="upload-cloud" class="text-primary me-2"></i>
+                                Upload Your Financial Data
+                            </h3>
+                            
+                            <!-- Enhanced file upload with drag & drop -->
+                            <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+                                <div class="mb-4">
+                                    <label for="file" class="form-label fw-semibold">Select CSV File</label>
+                                    <div class="file-upload-container" id="fileUploadContainer">
+                                        <div class="file-drop-area" id="fileDropArea">
+                                            <i data-feather="upload" class="file-upload-icon"></i>
+                                            <p class="file-upload-text">
+                                                <strong>Click to browse</strong> or drag & drop your CSV file here
+                                            </p>
+                                            <input type="file" class="form-control d-none" id="file" name="file" 
+                                                   accept=".csv" required>
+                                        </div>
+                                        <div class="file-preview d-none" id="filePreview">
+                                            <div class="file-info">
+                                                <i data-feather="file-text" class="me-2"></i>
+                                                <span id="fileName"></span>
+                                                <span class="file-size" id="fileSize"></span>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" id="removeFile">
+                                                <i data-feather="x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">
+                                        <i data-feather="info" class="me-1"></i>
+                                        Supports QuickBooks, Wave, Revolut, Xero, and other CSV formats (Max: 16MB)
+                                    </div>
+                                </div>
+                                
+                                <!-- Company branding section -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label for="companyName" class="form-label fw-semibold">Company Name (Optional)</label>
+                                        <input type="text" class="form-control" id="companyName" name="companyName" 
+                                               placeholder="Enter your company name for report branding">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="companyLogo" class="form-label fw-semibold">Company Logo (Optional)</label>
+                                        <input type="file" class="form-control" id="companyLogo" name="companyLogo" 
+                                               accept=".png,.jpg,.jpeg,.svg" placeholder="Upload your company logo">
+                                        <div class="form-text">
+                                            <i data-feather="image" class="me-1"></i>
+                                            PNG, JPG, JPEG, or SVG (Max: 2MB)
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-lg w-100" id="uploadBtn">
+                                    <span class="btn-text">
+                                        <i data-feather="trending-up" class="me-2"></i>
+                                        Analyze My Spending
+                                    </span>
+                                    <span class="btn-loading d-none">
+                                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                        Analyzing...
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-5 fw-bold mb-3">Powerful Financial Analysis Features</h2>
+                <p class="lead text-muted">
+                    Advanced AI algorithms analyze your spending patterns and provide actionable insights 
+                    to optimize your financial performance.
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i data-feather="target" class="text-primary"></i>
+                    </div>
+                    <h4>SpendScore Analysis</h4>
+                    <p class="text-muted">
+                        Get your financial health score with traffic light indicators: 
+                        Green (90+), Amber (70-89), Red (0-69).
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i data-feather="cpu" class="text-success"></i>
+                    </div>
+                    <h4>AI Recommendations</h4>
+                    <p class="text-muted">
+                        Receive 3 prioritized, actionable suggestions to reduce expenses 
+                        and optimize your spending patterns.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i data-feather="file-text" class="text-info"></i>
+                    </div>
+                    <h4>Professional Reports</h4>
+                    <p class="text-muted">
+                        Generate comprehensive PDF reports with charts, insights, 
+                        and detailed financial analysis.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i data-feather="database" class="text-warning"></i>
+                    </div>
+                    <h4>Smart CSV Parsing</h4>
+                    <p class="text-muted">
+                        Automatically recognizes and processes multiple CSV formats 
+                        from popular accounting platforms.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i data-feather="pie-chart" class="text-danger"></i>
+                    </div>
+                    <h4>Visual Analytics</h4>
+                    <p class="text-muted">
+                        Interactive charts and visualizations help you understand 
+                        your spending patterns at a glance.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i data-feather="shield" class="text-purple"></i>
+                    </div>
+                    <h4>Secure Processing</h4>
+                    <p class="text-muted">
+                        Your financial data is processed securely with enterprise-grade 
+                        encryption and privacy protection.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+                <p class="lead text-muted">
+                    Get professional financial insights in three simple steps.
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-number">1</div>
+                    <h4>Upload CSV</h4>
+                    <p class="text-muted">
+                        Upload your transaction data from any major accounting platform 
+                        or bank export.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-number">2</div>
+                    <h4>AI Analysis</h4>
+                    <p class="text-muted">
+                        Our GPT-4o powered engine analyzes your spending patterns 
+                        and financial health metrics.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-number">3</div>
+                    <h4>Get Insights</h4>
+                    <p class="text-muted">
+                        Receive your SpendScore, prioritized recommendations, 
+                        and a comprehensive PDF report.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Supported Formats Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-4">
+            <div class="col-lg-8 mx-auto">
+                <h3 class="fw-bold mb-3">Supported File Formats</h3>
+                <p class="text-muted">
+                    We support CSV exports from all major accounting and banking platforms.
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-3 justify-content-center">
+            <div class="col-auto">
+                <div class="platform-badge">
+                    <i data-feather="dollar-sign" class="me-2"></i>
+                    QuickBooks
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="platform-badge">
+                    <i data-feather="trending-up" class="me-2"></i>
+                    Wave Accounting
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="platform-badge">
+                    <i data-feather="credit-card" class="me-2"></i>
+                    Revolut Business
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="platform-badge">
+                    <i data-feather="bar-chart" class="me-2"></i>
+                    Xero
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="platform-badge">
+                    <i data-feather="database" class="me-2"></i>
+                    Bank Exports
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('uploadBtn');
+    const btnText = btn.querySelector('.btn-text');
+    const btnLoading = btn.querySelector('.btn-loading');
+    
+    btn.disabled = true;
+    btnText.classList.add('d-none');
+    btnLoading.classList.remove('d-none');
+});
+
+// File input validation
+document.getElementById('file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 16 * 1024 * 1024) {
+            alert('File size must be less than 16MB');
+            e.target.value = '';
+        }
+    }
+});
+</script>
+{% endblock %}
