@@ -55,5 +55,5 @@ externalPort = 8000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bash", "-c", "cd verocta-ai-unified/backend && pip install -r requirements.txt && gunicorn --bind=0.0.0.0:5000 --reuse-port app:app"]
-build = ["bash", "-c", "cd verocta-ai-unified/frontend && npm install && npm run build"]
+run = ["cd verocta-ai-unified/backend", "gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "app:app"]
+build = ["cd verocta-ai-unified/frontend", "npm run build"]
