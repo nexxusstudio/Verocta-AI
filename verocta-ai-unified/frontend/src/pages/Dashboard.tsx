@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import ReportsManager from '@components/ReportsManager'
+import UploadManager from '@components/UploadManager'
+import InsightsEngine from '@components/InsightsEngine'
+import PaymentsManager from '@components/PaymentsManager'
 import { apiClient } from '@utils/api'
 import { 
   ChartBarIcon, 
@@ -204,18 +207,9 @@ const Dashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'reports' && <ReportsManager />}
-        {activeTab === 'upload' && renderPlaceholderContent(
-          'CSV & Google Sheets Integration',
-          'Upload CSV files or connect Google Sheets for automated data ingestion and mapping.'
-        )}
-        {activeTab === 'insights' && renderPlaceholderContent(
-          'SpendScore™ Insights Engine',
-          'Advanced analytics including waste detection, duplicates, spikes, forecasting, and benchmarking.'
-        )}
-        {activeTab === 'payments' && renderPlaceholderContent(
-          'Stripe Multi-Currency Payments',
-          'Manage subscriptions and payments across USD, GBP, CAD, AUD, and NZD currencies.'
-        )}
+        {activeTab === 'upload' && <UploadManager />}
+        {activeTab === 'insights' && <InsightsEngine />}
+        {activeTab === 'payments' && <PaymentsManager />}
         {activeTab === 'settings' && renderPlaceholderContent(
           'Account Settings',
           'Configure your account preferences, API settings, and notification preferences.'
