@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import ReportsManager from '@components/ReportsManager'
+import { apiClient } from '@utils/api'
 import { 
   ChartBarIcon, 
   DocumentTextIcon, 
@@ -13,13 +15,37 @@ import {
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
+  const [stats, setStats] = useState([
+    { name: 'Total Reports', value: '0', icon: DocumentTextIcon, change: '+0%' },
+    { name: 'SpendScore Average', value: '0', icon: ChartBarIcon, change: '+0%' },
+    { name: 'Cost Savings', value: '$0', icon: CurrencyDollarIcon, change: '+0%' },
+    { name: 'Active Users', value: '1', icon: UsersIcon, change: '+1' },
+  ])
 
-  const stats = [
-    { name: 'Total Reports', value: '12', icon: DocumentTextIcon, change: '+2.1%' },
-    { name: 'SpendScore Average', value: '78.5', icon: ChartBarIcon, change: '+4.3%' },
-    { name: 'Cost Savings', value: '$24,580', icon: CurrencyDollarIcon, change: '+12.5%' },
-    { name: 'Active Users', value: '8', icon: UsersIcon, change: '+1' },
-  ]
+  useEffect(() => {
+    fetchDashboardStats()
+  }, [])
+
+  const fetchDashboardStats = async () => {
+    try {
+      const response = await apiClient.get('/reports')
+      const reports = response.data.reports
+      
+      if (reports.length > 0) {
+        const avgScore = Math.round(reports.reduce((sum: number, r: any) => sum + r.spend_score, 0) / reports.length)
+        const totalSavings = reports.reduce((sum: number, r: any) => sum + (r.data.total_amount * 0.15), 0)
+        
+        setStats([
+          { name: 'Total Reports', value: reports.length.toString(), icon: DocumentTextIcon, change: '+2.1%' },
+          { name: 'SpendScore Average', value: avgScore.toString(), icon: ChartBarIcon, change: '+4.3%' },
+          { name: 'Cost Savings', value: `$${Math.round(totalSavings).toLocaleString()}`, icon: CurrencyDollarIcon, change: '+12.5%' },
+          { name: 'Active Users', value: '1', icon: UsersIcon, change: '+1' },
+        ])
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error)
+    }
+  }
 
   const recentReports = [
     { id: 1, name: 'Q1 Financial Analysis', date: '2025-03-15', score: 82, status: 'completed' },
@@ -177,10 +203,7 @@ const Dashboard: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'reports' && renderPlaceholderContent(
-          'Reports Management',
-          'View, manage, and generate financial analysis reports with AI-powered insights.'
-        )}
+        {activeTab === 'reports' && <ReportsManager />}
         {activeTab === 'upload' && renderPlaceholderContent(
           'CSV & Google Sheets Integration',
           'Upload CSV files or connect Google Sheets for automated data ingestion and mapping.'

@@ -7,11 +7,15 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from werkzeug.utils import secure_filename
 from app import app
 from auth import validate_user, create_user, get_current_user, require_admin
+from models import create_report, get_reports_by_user, get_report_by_id, delete_report, init_sample_data
 from csv_parser import parse_csv_file
 from gpt_utils import generate_financial_insights
 from spend_score_engine import calculate_spend_score, get_score_label, get_score_color, get_enhanced_analysis
 from pdf_generator import generate_report_pdf
 from clone_verifier import verify_project_integrity
+
+# Initialize sample data
+init_sample_data()
 
 # Configure upload settings
 UPLOAD_FOLDER = 'uploads'
@@ -124,6 +128,80 @@ def get_profile():
                 'created_at': user['created_at'].isoformat()
             }
         })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Reports API
+@app.route('/api/reports', methods=['GET'])
+@jwt_required()
+def get_reports():
+    """Get all reports for the current user"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        reports = get_reports_by_user(user['id'])
+        return jsonify({
+            'reports': [report.to_dict() for report in reports],
+            'total': len(reports)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reports/<int:report_id>', methods=['GET'])
+@jwt_required()
+def get_report(report_id):
+    """Get a specific report by ID"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        report = get_report_by_id(report_id, user['id'])
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+        
+        return jsonify({'report': report.to_dict()})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reports/<int:report_id>', methods=['DELETE'])
+@jwt_required()
+def delete_report_endpoint(report_id):
+    """Delete a specific report"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        success = delete_report(report_id, user['id'])
+        if not success:
+            return jsonify({'error': 'Report not found or access denied'}), 404
+        
+        return jsonify({'message': 'Report deleted successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reports', methods=['POST'])
+@jwt_required()
+def create_report_endpoint():
+    """Create a new report from uploaded data"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        data = request.get_json()
+        title = data.get('title', 'Untitled Report')
+        report_data = data.get('data', {})
+        
+        report = create_report(title, user['id'], user['company'], report_data)
+        
+        return jsonify({
+            'message': 'Report created successfully',
+            'report': report.to_dict()
+        }), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
