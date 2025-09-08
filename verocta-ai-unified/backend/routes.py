@@ -2,7 +2,7 @@ import os
 import json
 import logging
 from datetime import datetime
-from flask import render_template, request, flash, redirect, url_for, send_file, jsonify
+from flask import render_template, request, flash, redirect, url_for, send_file, send_from_directory, jsonify
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from werkzeug.utils import secure_filename
 from app import app
