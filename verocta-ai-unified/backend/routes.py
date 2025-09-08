@@ -3,8 +3,10 @@ import json
 import logging
 from datetime import datetime
 from flask import render_template, request, flash, redirect, url_for, send_file, jsonify
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from werkzeug.utils import secure_filename
 from app import app
+from auth import validate_user, create_user, get_current_user, require_admin
 from csv_parser import parse_csv_file
 from gpt_utils import generate_financial_insights
 from spend_score_engine import calculate_spend_score, get_score_label, get_score_color, get_enhanced_analysis
@@ -40,6 +42,90 @@ def health_check():
         'message': 'Verocta Financial Insight Platform is running',
         'version': '2.0.0'
     })
+
+# Authentication Routes
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """User login endpoint"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({'error': 'Email and password required'}), 400
+        
+        user = validate_user(email, password)
+        if not user:
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        access_token = create_access_token(identity=email)
+        
+        return jsonify({
+            'token': access_token,
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'role': user['role'],
+                'company': user['company']
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    """User registration endpoint"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        company = data.get('company', 'Default Company')
+        
+        if not email or not password:
+            return jsonify({'error': 'Email and password required'}), 400
+        
+        if len(password) < 6:
+            return jsonify({'error': 'Password must be at least 6 characters'}), 400
+        
+        user = create_user(email, password, company)
+        if not user:
+            return jsonify({'error': 'User already exists'}), 409
+        
+        access_token = create_access_token(identity=email)
+        
+        return jsonify({
+            'token': access_token,
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'role': user['role'],
+                'company': user['company']
+            }
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/auth/me', methods=['GET'])
+@jwt_required()
+def get_profile():
+    """Get current user profile"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        return jsonify({
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'role': user['role'],
+                'company': user['company'],
+                'created_at': user['created_at'].isoformat()
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/upload', methods=['POST'])
 def api_upload():

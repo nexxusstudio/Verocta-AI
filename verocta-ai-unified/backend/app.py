@@ -1,6 +1,7 @@
 import os
 import logging
 from flask import Flask, send_from_directory, send_file
+from flask_cors import CORS
 
 # Load environment variables from .env file if it exists
 try:
@@ -25,6 +26,19 @@ app = Flask(__name__,
             static_url_path='',
             template_folder=frontend_build_dir)
 app.secret_key = os.environ.get("SESSION_SECRET", "verocta-secret-key-2024")
+
+# Enable CORS for development
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["*"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+
+# Initialize authentication
+from auth import init_auth
+jwt = init_auth(app)
 
 # Import routes after app creation to avoid circular imports
 from routes import *
