@@ -4,7 +4,8 @@
   "description": "VeroctaAI Front-End Application",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0 --port 5000",
+    "serve": "vite preview --host 0.0.0.0 --port 5000",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
