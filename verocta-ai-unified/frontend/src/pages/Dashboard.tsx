@@ -4,6 +4,7 @@ import ReportsManager from '@components/ReportsManager'
 import UploadManager from '@components/UploadManager'
 import InsightsEngine from '@components/InsightsEngine'
 import PaymentsManager from '@components/PaymentsManager'
+import SettingsManager from '@components/SettingsManager'
 import { apiClient } from '@utils/api'
 import { 
   ChartBarIcon, 
@@ -140,16 +141,6 @@ const Dashboard: React.FC = () => {
     </div>
   )
 
-  const renderPlaceholderContent = (title: string, description: string) => (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4">{description}</p>
-      <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-        Coming Soon
-      </button>
-    </div>
-  )
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -210,10 +201,7 @@ const Dashboard: React.FC = () => {
         {activeTab === 'upload' && <UploadManager />}
         {activeTab === 'insights' && <InsightsEngine />}
         {activeTab === 'payments' && <PaymentsManager />}
-        {activeTab === 'settings' && renderPlaceholderContent(
-          'Account Settings',
-          'Configure your account preferences, API settings, and notification preferences.'
-        )}
+        {activeTab === 'settings' && <SettingsManager />}
       </div>
     </div>
   )
