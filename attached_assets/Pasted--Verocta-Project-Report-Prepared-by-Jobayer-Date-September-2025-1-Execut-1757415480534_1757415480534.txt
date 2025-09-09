@@ -1,0 +1,53 @@
+# 📊 Verocta – Project Report
+
+**Prepared by:** Jobayer
+
+**Date:** September 2025
+
+---
+
+## 1. Executive Summary
+
+Verocta is being developed as a **launch-ready SaaS platform** to provide actionable financial intelligence for SMBs and mid-market companies. The platform’s unique value lies in delivering **clear, explainable, and actionable insights** that go beyond dashboards or raw data — empowering finance teams to cut waste, optimize spend, and unlock savings.
+
+**Current Status:**
+
+- Milestone 2 completed (core backend logic, APIs, setup docs delivered).
+- Milestone 3 in progress (full SaaS backend with Stripe integration, extended insights, deployment).
+
+**Target Outcome (Post Milestone 3):**
+
+Verocta becomes a stable, deployed, and revenue-capable SaaS product, ready to onboard paying customers.
+
+---
+
+## 2. Milestone Overview
+
+### ✅ Milestone 1 – Core Backend Foundations
+
+- Flask backend setup with core routes.
+- CSV ingestion & parsing logic.
+- Initial SpendScore™ calculation.
+- PDF report generation.
+
+### ✅ Milestone 2 – Documentation & Refinement
+
+- API Docs (Markdown + Postman format).
+- Setup guide (environment variables, dependencies).
+- Revamped file structure for clarity.
+
+### 🚀 Milestone 3 – Launch-Ready SaaS Backend (Current)
+
+**Scope (700 AUD, 3–4 weeks):**
+
+- **Insights Engine:** Baseline + extended (forecasting, benchmarking, gamification).
+- **Data Ingestion:** CSV + Google Sheets integration with manual mapping.
+- **Core Platform:** JWT Authentication, reports list/view APIs, automated emails.
+- **Monetization:** Stripe integration (USD base, multi-currency, subscription webhooks, dunning, invoices, VAT/GST hooks).
+- **Security & Stability:** Input validation, rate limiting, error monitoring (Sentry), audit logs.
+- **Onboarding & Roles:** Admin/User roles, usage metrics, welcome/report delivery emails.
+- **Deployment:** Render (backend), API base URL, health check, DB backup/restore, Postman docs for frontend integration.
+
+---
+
+## 3. Development Architecture
