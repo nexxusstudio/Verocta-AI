@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { apiClient } from '@utils/api'
+import { apiClient } from '../utils/api'
 
 interface User {
   id: number

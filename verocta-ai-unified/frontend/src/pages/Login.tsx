@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const Login: React.FC = () => {
   const navigate = useNavigate()
@@ -40,7 +40,7 @@ const Login: React.FC = () => {
         <div>
           <img
             className="mx-auto h-12 w-auto"
-            src="/assets/images/verocta-logo.png"
+            src="/src/assets/verocta-logo.svg"
             alt="Verocta"
           />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
