@@ -56,5 +56,5 @@ externalPort = 80
 
 [deployment]
 deploymentTarget = "vm"
-run = ["bash", "-c", "cd verocta-ai-unified/backend && gunicorn --bind=0.0.0.0:5000 --reuse-port app:app"]
+run = ["bash", "-c", "cd verocta-ai-unified/backend && python app.py"]
 build = ["bash", "-c", "cd verocta-ai-unified/frontend && npm run build"]
