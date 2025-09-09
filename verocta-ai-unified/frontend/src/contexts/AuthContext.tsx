@@ -29,9 +29,15 @@ export const useAuth = () => {
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Mock user for demo purposes
+  const [user, setUser] = useState<User | null>({
+    id: 1,
+    email: 'demo@verocta.ai',
+    role: 'admin',
+    company: 'Demo Company'
+  })
+  const [token, setToken] = useState<string | null>('demo-token')
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     // Check for existing token on app load
@@ -90,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('auth_token')
   }
 
-  const isAuthenticated = !!token && !!user
+  const isAuthenticated = true // Always authenticated for demo
 
   const value = {
     user,

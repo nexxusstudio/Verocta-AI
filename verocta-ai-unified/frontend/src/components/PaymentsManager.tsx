@@ -30,7 +30,7 @@ const PaymentsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState('subscription')
   const [subscription] = useState<Subscription>({
     id: 1,
-    plan: 'Professional',
+    plan: 'Professional (Demo - No Payment Required)',
     price: 99,
     currency: 'USD',
     status: 'active',

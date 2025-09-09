@@ -37,6 +37,9 @@ const Home: React.FC = () => {
               <span className="ml-2 text-xl font-bold text-gray-900">Verocta</span>
             </div>
             <div className="flex items-center space-x-4">
+              <Link to="/dashboard" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                Demo Dashboard
+              </Link>
               <Link to="/login" className="text-gray-600 hover:text-gray-900">
                 Sign In
               </Link>
@@ -60,13 +63,13 @@ const Home: React.FC = () => {
             and provide actionable recommendations to reduce costs and improve efficiency.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center">
-              Start Free Trial
+            <Link to="/dashboard" className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+              Demo Dashboard
               <ArrowRightIcon className="w-5 h-5 ml-2" />
             </Link>
-            <button className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50">
-              View Demo
-            </button>
+            <Link to="/register" className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50">
+              Start Free Trial
+            </Link>
           </div>
         </div>
       </section>
