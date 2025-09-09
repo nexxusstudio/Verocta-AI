@@ -41,16 +41,22 @@ export const endpoints = {
   // Auth
   login: '/auth/login',
   register: '/auth/register',
-  logout: '/auth/logout',
+  me: '/auth/me',
   
-  // Contact
-  contact: '/contact',
+  // Reports
+  reports: '/reports',
+  report: (id: number) => `/reports/${id}`,
+  deleteReport: (id: number) => `/reports/${id}`,
   
-  // Services
-  services: '/services',
+  // Analysis
+  upload: '/upload',
+  spendScore: '/spend-score',
+  downloadReport: '/report',
   
-  // Projects
-  projects: '/projects',
+  // System
+  health: '/health',
+  verifyClone: '/verify-clone',
+  docs: '/docs'
 }
 
 // Generic API functions
