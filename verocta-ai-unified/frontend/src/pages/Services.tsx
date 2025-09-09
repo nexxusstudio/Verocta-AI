@@ -12,6 +12,15 @@ import {
 const Services: React.FC = () => {
   const services = [
     {
+      icon: ChartBarIcon,
+      title: '🚀 Demo Dashboard (NEW)',
+      description: 'Interactive financial intelligence platform - try all features instantly without signup!',
+      features: ['SpendScore™ Analytics', 'Waste Detection', 'PDF Reports', 'Admin Dashboard'],
+      price: 'Free Demo',
+      isDemo: true,
+      link: '/dashboard'
+    },
+    {
       icon: CogIcon,
       title: 'AI Consulting',
       description: 'Strategic guidance on AI implementation, technology selection, and digital transformation.',

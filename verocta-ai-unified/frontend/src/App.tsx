@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Layout from './components/Layout/Layout'
 import Home from './pages/Home'
+import About from './pages/About'
+import Services from './pages/Services'
+import Contact from './pages/Contact'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -21,11 +24,26 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Landing page for non-authenticated users */}
+      {/* Public marketing pages */}
       <Route path="/" element={
-        <PublicRoute>
+        <Layout>
           <Home />
-        </PublicRoute>
+        </Layout>
+      } />
+      <Route path="/about" element={
+        <Layout>
+          <About />
+        </Layout>
+      } />
+      <Route path="/services" element={
+        <Layout>
+          <Services />
+        </Layout>
+      } />
+      <Route path="/contact" element={
+        <Layout>
+          <Contact />
+        </Layout>
       } />
       
       {/* Auth routes */}
@@ -40,7 +58,7 @@ function AppRoutes() {
         </PublicRoute>
       } />
       
-      {/* Protected SaaS dashboard routes */}
+      {/* SaaS Dashboard (Demo Feature) */}
       <Route path="/dashboard/*" element={
         <ProtectedRoute>
           <Dashboard />

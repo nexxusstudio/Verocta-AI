@@ -36,7 +36,10 @@ const Home: React.FC = () => {
               <img src="/src/assets/verocta-logo.svg" alt="Verocta" className="h-8 w-auto" />
               <span className="ml-2 text-xl font-bold text-gray-900">Verocta</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
+              <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link>
+              <Link to="/services" className="text-gray-600 hover:text-gray-900">Services</Link>
+              <Link to="/contact" className="text-gray-600 hover:text-gray-900">Contact</Link>
               <Link to="/dashboard" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
                 Demo Dashboard
               </Link>
@@ -70,6 +73,57 @@ const Home: React.FC = () => {
             <Link to="/register" className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50">
               Start Free Trial
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Demo Dashboard Feature */}
+      <section className="py-16 bg-gradient-to-r from-green-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
+              <ChartBarIcon className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              🚀 NEW: Interactive Demo Dashboard
+            </h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Experience the full power of Verocta's financial intelligence platform. 
+              No signup required - explore all features instantly!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Link 
+                to="/dashboard" 
+                className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 flex items-center justify-center text-lg font-medium"
+              >
+                🎯 Try Demo Dashboard
+                <ArrowRightIcon className="w-5 h-5 ml-2" />
+              </Link>
+              <Link 
+                to="/services" 
+                className="border border-gray-300 text-gray-700 px-8 py-4 rounded-lg hover:bg-gray-50 text-lg font-medium"
+              >
+                Learn More
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+              <div className="flex items-center justify-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                SpendScore™ Analytics
+              </div>
+              <div className="flex items-center justify-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                Waste Detection
+              </div>
+              <div className="flex items-center justify-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                PDF Reports
+              </div>
+              <div className="flex items-center justify-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                Admin Dashboard
+              </div>
+            </div>
           </div>
         </div>
       </section>
