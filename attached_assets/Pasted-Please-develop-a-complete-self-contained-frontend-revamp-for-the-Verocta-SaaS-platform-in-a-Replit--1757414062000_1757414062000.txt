@@ -1,0 +1,75 @@
+Please develop a complete, self-contained frontend revamp for the Verocta SaaS platform in a Replit or local development environment, integrating with the existing Flask backend.
+
+**Project Name:** Verocta SaaS Revamp  
+**Project Goal:** Transform the static agency-style frontend into a fully functional SaaS dashboard, integrating all backend features (auth, reports, insights, Stripe, emails) for a seamless user experience focused on financial spend analysis.  
+**Target User:** SMBs and mid-market finance teams optimizing spending.
+
+**Technology Stack:**  
+- **Frontend Framework:** React (Next.js preferred)  
+- **Styling:** Tailwind CSS  
+- **Charts:** Recharts or Chart.js  
+- **State Management:** React Query or Redux Toolkit  
+- **API Integration:** Axios or fetch (with JWT token handling)  
+- **Backend Integration:** Existing Flask REST APIs (auth, reports, insights, Stripe)  
+- **Database/Storage:** No changes needed (use backend DB)  
+- **Other:** Formik/Yup for forms, React Hot Toast for notifications  
+
+**Features to Implement:**  
+1. **Authentication Flows:**  
+   - Signup: Email/password form, backend POST /api/signup, send verification email.  
+   - Login: Email/password form, POST /api/login, store JWT in localStorage, redirect to dashboard.  
+   - Forgot Password: Email reset link (mock or integrate backend).  
+   - Logout: Clear token, redirect to login.  
+   - Protected Routes: Use JWT for auth guards on dashboard pages.  
+
+2. **User Dashboard (Core UI):**  
+   - Sidebar Navigation: Home, Insights, Reports, Billing, Settings.  
+   - Home: Overview with SpendScore™ card (0-100 gauge with RAG colors: Red <50, Amber 50-80, Green >80), quick stats (waste %, spikes, duplicates).  
+   - Data Upload: Form for CSV upload (file validation, manual column mapping modal: select Date/Amount/Category from dropdowns), Google Sheets connect button (OAuth flow via backend).  
+   - Insights View: Dynamic cards/charts for waste %, duplicates (list vendors), spikes (line chart with IQR highlights), category breakdown (pie chart + diversity score), forecasting (bar chart projections), benchmarking (comparison bars), gamification (badges/points for high SpendScore).  
+   - Reports: List table (title, date, actions), detail view modal, PDF download button (GET /api/reports/{id}/download).  
+   - Billing: Subscription status, upgrade/downgrade buttons (Stripe checkout redirect), invoice history table.  
+   - Settings: Profile update, notification preferences.  
+
+3. **Admin Dashboard:**  
+   - Accessible only to admin role (check JWT claims).  
+   - Users Tab: Table of users (email, role, subscription status), edit roles/subscriptions.  
+   - Reports Tab: System-wide reports list, search/filter.  
+   - CSV Mapping: Global rules editor (form to define default mappings).  
+   - System Health: Metrics dashboard (API usage, active users, logs via backend endpoint).  
+
+4. **User Flows & Integrations:**  
+   - Onboarding: Post-signup redirect to welcome tour (stepper modal: upload data → view insights → manage billing).  
+   - Data Flow: Upload → Backend processing → Real-time polling or WebSockets (if implemented) for insights → Display results.  
+   - Report Flow: Generate button → Backend creates PDF → Download + email trigger.  
+   - Billing Flow: Subscribe button → Stripe session (POST /api/subscribe) → Webhook updates status → Refresh UI.  
+   - Emails: UI status messages for sent emails (e.g., "Report emailed").  
+   - Error Handling: Global toast notifications for API errors, loading spinners.  
+
+5. **Design & UX Guidelines:**  
+   - Minimalist SaaS style: White/gray background, blue accents for brand, RAG colors (red/amber/green).  
+   - Responsive: Mobile-first (grid/flex for layouts), breakpoints for tablet/desktop.  
+   - Animations: Framer Motion for transitions, skeletons for loading.  
+   - Accessibility: ARIA labels, keyboard nav, alt text for charts/images.  
+   - Validation: Every backend feature must have UI representation (e.g., insights JSON rendered as cards/charts).  
+
+**Project Structure:**  
+- **Root Directory:** package.json, next.config.js (if Next.js), tailwind.config.js, README.md  
+- **Folders:**  
+  - src/components/ (DashboardCard, UploadForm, ChartWrapper, Sidebar, Modals)  
+  - src/pages/ (login, signup, dashboard/home, insights, reports, billing, admin/users)  
+  - src/lib/ (api.js for Axios instance with auth interceptor, utils.js)  
+  - src/store/ (Redux or Query setup)  
+  - public/ (static assets: logos, icons)  
+
+**Specific Instructions:**  
+- Integrate with existing backend APIs (assume running on localhost:5000 or Replit URL).  
+- All code must be runnable in Replit (use Node.js repl) or local (npx create-next-app).  
+- Include all necessary code in a single response, with separate code blocks for key files (e.g., App.js, Dashboard.js, api.js).  
+- Add comments explaining logic, especially API integrations and state handling.  
+- Mock data for initial dev (e.g., sample insights JSON), then connect to real backend.  
+- No agency/marketing elements: Focus on dashboard/product UI only.  
+- Include deployment notes for Vercel (frontend) + Render (backend integration).  
+- Budget: Align with 700 AUD milestone; Timeline: 3-4 weeks.  
+- Test: Ensure end-to-end flows work (signup → upload → insights → billing).  
+- Deliverables: Full source code, setup instructions, Postman not needed (focus on UI).

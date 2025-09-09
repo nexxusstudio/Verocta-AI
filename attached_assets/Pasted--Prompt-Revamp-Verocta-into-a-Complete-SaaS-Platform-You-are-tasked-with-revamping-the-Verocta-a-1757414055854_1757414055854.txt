@@ -1,0 +1,102 @@
+🚀 Prompt: Revamp Verocta into a Complete SaaS Platform
+
+You are tasked with revamping the Verocta application into a fully functional SaaS platform. The backend logic, APIs, and integrations (auth, Stripe, reports, insights) are already implemented. The issue is that the current frontend/UI does not represent any of the product features — it looks like a static agency landing page instead of a SaaS product.
+
+Your goal is to transform the application into a complete SaaS experience with proper UI/UX, frontend integration, and feature coverage.
+
+🔑 Requirements
+1. SaaS Frontend (Core User Experience)
+
+Replace the current “agency-style” site with a clean, product-focused UI.
+
+Build a dashboard-driven interface where users can:
+
+Upload CSVs & connect Google Sheets.
+
+View SpendScore™, waste %, spikes, duplicates.
+
+See charts, breakdowns, and recommendations.
+
+Download PDF reports.
+
+Manage subscription status (Stripe billing).
+
+Include authentication flows: signup, login, forgot password, logout.
+
+Add a responsive design (desktop, tablet, mobile).
+
+2. Admin Dashboard
+
+Secure admin access (role = admin).
+
+Features:
+
+Manage users & subscriptions.
+
+View all reports system-wide.
+
+Configure CSV mapping rules.
+
+Monitor API usage & system health.
+
+3. User Flows (Frontend + Backend Integration)
+
+Onboarding Flow: signup → email verification → welcome tour.
+
+Data Upload Flow: CSV/Sheets upload → mapping → insights generated.
+
+Insights Flow: dynamic SpendScore card (RAG badge), category charts, waste analysis.
+
+Report Flow: download PDF → automated email delivery.
+
+Billing Flow: subscribe, cancel, upgrade/downgrade → Stripe checkout → billing history.
+
+4. Feature Validation in UI
+
+Every backend feature must be surfaced in the frontend:
+
+JWT Authentication → Login/Signup UI.
+
+Reports API → Reports list + detail view.
+
+Insights Engine → Interactive dashboard cards.
+
+Stripe Subscriptions → Billing settings + invoices UI.
+
+Email Notifications → Status messages + account center.
+
+5. Tech Stack (Frontend)
+
+React (Next.js preferred) with TailwindCSS for a modern SaaS look.
+
+Components: charts (Recharts/Chart.js), modals, tables, form validation.
+
+State management: React Query or Redux Toolkit.
+
+API integration: Axios/fetch with token-based auth.
+
+6. Design & UX Guidelines
+
+Minimal, professional SaaS design (inspired by Stripe, Plaid, Notion).
+
+Dashboard layout with sidebar navigation (Home, Reports, Insights, Billing, Settings).
+
+Consistent use of brand colors + SpendScore RAG system.
+
+Smooth animations (loading states, transitions).
+
+✅ Final Deliverable
+
+A fully functional SaaS application where:
+
+Backend APIs are integrated into a React-based frontend.
+
+All product features (SpendScore™, insights, reports, billing) are accessible through the UI.
+
+Users can sign up, log in, upload data, get insights, download reports, and manage subscriptions.
+
+Admins can monitor system health, users, and reports.
+
+The product feels like a real SaaS, not a static landing page.
+
+⚡ Important Note: Do not deliver an “agency-style marketing site.” Deliver a usable SaaS product dashboard that validates every backend feature in the UI.
