@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { apiClient } from '@utils/api'
+import { apiClient, endpoints } from '../utils/api'
 import { 
   CloudArrowUpIcon, 
   DocumentChartBarIcon,
