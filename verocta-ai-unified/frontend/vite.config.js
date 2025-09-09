@@ -20,11 +20,7 @@ module.exports = defineConfig({
     host: '0.0.0.0',
     port: 5000,
     open: false,
-    allowedHosts: [
-      'all',
-      '160543a0-493f-44ea-ac8a-67a417014f61-00-1ndtpbrwlzrbw.picard.replit.dev',
-      '.replit.dev'
-    ]
+    allowedHosts: true
   },
   build: {
     outDir: 'dist',
