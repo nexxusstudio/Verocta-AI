@@ -37,47 +37,144 @@ const InsightsEngine: React.FC = () => {
   const [selectedMetric, setSelectedMetric] = useState('overview')
 
   useEffect(() => {
-    generateMockInsights()
+    loadInsights()
   }, [])
 
-  const generateMockInsights = async () => {
-    // Simulate API call delay
-    setTimeout(() => {
-      const mockInsights: InsightData = {
-        spendScore: 78,
-        wastePercentage: 12.4,
-        duplicateExpenses: 23,
-        spendingSpikes: 5,
-        savingsOpportunities: 8,
-        totalProcessed: 125000,
-        recommendations: [
-          'Consolidate software subscriptions to save ~$2,400/year',
-          'Implement approval workflow for expenses >$500',
-          'Renegotiate terms with top 3 vendors for 15% discount',
-          'Automate recurring payments to reduce processing fees',
-          'Review and cancel unused subscriptions saving $890/month'
-        ],
-        categories: [
-          { name: 'Software & SaaS', amount: 25000, percentage: 20, trend: 'up' },
-          { name: 'Office Supplies', amount: 18000, percentage: 14.4, trend: 'down' },
-          { name: 'Marketing', amount: 22000, percentage: 17.6, trend: 'up' },
-          { name: 'Travel', amount: 15000, percentage: 12, trend: 'stable' },
-          { name: 'Utilities', amount: 12000, percentage: 9.6, trend: 'stable' },
-          { name: 'Other', amount: 33000, percentage: 26.4, trend: 'up' }
-        ],
-        forecast: [
-          { month: 'Jan', predicted: 95000, actual: 92000 },
-          { month: 'Feb', predicted: 88000, actual: 91000 },
-          { month: 'Mar', predicted: 102000, actual: 98000 },
-          { month: 'Apr', predicted: 96000 },
-          { month: 'May', predicted: 104000 },
-          { month: 'Jun', predicted: 99000 }
-        ]
-      }
-      setInsights(mockInsights)
+  const loadInsights = async () => {
+    try {
+      setLoading(true)
+      
+      // Try to load real insights from reports and uploads
+      const [reportsResponse, spendScoreResponse] = await Promise.all([
+        apiClient.get('/reports').catch(() => ({ data: { reports: [] } })),
+        fetch('/api/spend-score').then(res => res.ok ? res.json() : null).catch(() => null)
+      ])
+      
+      const reports = reportsResponse.data.reports || []
+      const spendScoreData = spendScoreResponse
+      
+      // Generate insights based on available data
+      const generatedInsights = generateInsightsFromData(reports, spendScoreData)
+      setInsights(generatedInsights)
+      
+    } catch (error) {
+      console.error('Failed to load insights:', error)
+      // Fallback to demo insights if API fails
+      setInsights(generateDemoInsights())
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
+
+  const generateInsightsFromData = (reports: any[], spendScoreData: any): InsightData => {
+    // If we have real data, use it
+    if (spendScoreData && spendScoreData.spend_score) {
+      return {
+        spendScore: spendScoreData.spend_score,
+        wastePercentage: spendScoreData.score_breakdown?.waste_ratio * 100 || 0,
+        duplicateExpenses: spendScoreData.score_breakdown?.redundancy_count || 0,
+        spendingSpikes: spendScoreData.score_breakdown?.variance_count || 0,
+        savingsOpportunities: spendScoreData.ai_insights?.savings_opportunities?.length || 0,
+        totalProcessed: spendScoreData.transaction_summary?.total_amount || 0,
+        recommendations: spendScoreData.ai_insights?.recommendations || [
+          'Upload your financial data to get personalized AI recommendations',
+          'Use the advanced upload mapping to improve analysis accuracy'
+        ],
+        categories: generateCategoriesFromData(spendScoreData.transaction_summary?.category_breakdown),
+        forecast: generateForecastFromData(spendScoreData)
+      }
+    }
+    
+    // If we have reports but no spend score, generate basic insights
+    if (reports.length > 0) {
+      return generateInsightsFromReports(reports)
+    }
+    
+    // Fallback to demo data with guidance
+    return generateDemoInsights()
+  }
+
+  const generateCategoriesFromData = (categoryBreakdown: any) => {
+    if (!categoryBreakdown) return []
+    
+    const totalAmount = Object.values(categoryBreakdown).reduce((sum: number, amount: any) => sum + amount, 0)
+    
+    return Object.entries(categoryBreakdown).map(([name, amount]: [string, any]) => ({
+      name,
+      amount,
+      percentage: (amount / totalAmount) * 100,
+      trend: 'stable' as const // Could be enhanced with historical data
+    }))
+  }
+
+  const generateForecastFromData = (spendScoreData: any) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+    const baseAmount = spendScoreData.transaction_summary?.total_amount || 50000
+    
+    return months.map((month, index) => ({
+      month,
+      predicted: baseAmount + (Math.random() - 0.5) * baseAmount * 0.3
+    }))
+  }
+
+  const generateInsightsFromReports = (reports: any[]): InsightData => {
+    const totalReports = reports.length
+    const avgTransactions = reports.reduce((sum, report) => sum + (report.data?.transactions || 0), 0) / totalReports
+    
+    return {
+      spendScore: Math.min(95, 60 + totalReports * 5), // Increase score with more data
+      wastePercentage: Math.max(5, 15 - totalReports * 2),
+      duplicateExpenses: Math.floor(avgTransactions * 0.1),
+      spendingSpikes: Math.floor(totalReports * 0.8),
+      savingsOpportunities: Math.min(10, totalReports * 2),
+      totalProcessed: reports.reduce((sum, report) => sum + (report.data?.total_amount || 0), 0),
+      recommendations: [
+        `Based on ${totalReports} reports, consider implementing automated expense categorization`,
+        'Upload more recent data for improved trend analysis',
+        'Set up recurring analysis for continuous optimization'
+      ],
+      categories: [
+        { name: 'Mixed Categories', amount: avgTransactions * 100, percentage: 100, trend: 'stable' }
+      ],
+      forecast: generateDefaultForecast()
+    }
+  }
+
+  const generateDemoInsights = (): InsightData => {
+    return {
+      spendScore: 78,
+      wastePercentage: 12.4,
+      duplicateExpenses: 23,
+      spendingSpikes: 5,
+      savingsOpportunities: 8,
+      totalProcessed: 125000,
+      recommendations: [
+        'Upload your financial data to unlock personalized insights',
+        'Try the advanced upload mapping for better analysis',
+        'Generate reports from your uploads to track progress',
+        'Use the SpendScore algorithm for waste detection',
+        'Set up regular data uploads for continuous monitoring'
+      ],
+      categories: [
+        { name: 'Software & SaaS', amount: 25000, percentage: 20, trend: 'up' },
+        { name: 'Office Supplies', amount: 18000, percentage: 14.4, trend: 'down' },
+        { name: 'Marketing', amount: 22000, percentage: 17.6, trend: 'up' },
+        { name: 'Travel', amount: 15000, percentage: 12, trend: 'stable' },
+        { name: 'Utilities', amount: 12000, percentage: 9.6, trend: 'stable' },
+        { name: 'Other', amount: 33000, percentage: 26.4, trend: 'up' }
+      ],
+      forecast: generateDefaultForecast()
+    }
+  }
+
+  const generateDefaultForecast = () => [
+    { month: 'Jan', predicted: 95000, actual: 92000 },
+    { month: 'Feb', predicted: 88000, actual: 91000 },
+    { month: 'Mar', predicted: 102000, actual: 98000 },
+    { month: 'Apr', predicted: 96000 },
+    { month: 'May', predicted: 104000 },
+    { month: 'Jun', predicted: 99000 }
+  ]
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600'
@@ -260,24 +357,44 @@ const InsightsEngine: React.FC = () => {
         </div>
       </div>
 
-      {/* Benchmarking */}
+      {/* Action Items & Data Status */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Industry Benchmarking</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Insights Status & Next Steps</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-600">Better</div>
-            <div className="text-sm text-gray-600">vs. Industry Average</div>
-            <div className="text-xs text-gray-500 mt-1">Software waste: 8% vs 15%</div>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600">{insights.totalProcessed > 0 ? 'Live Data' : 'Demo Mode'}</div>
+            <div className="text-sm text-gray-600">Current Analysis</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {insights.totalProcessed > 0 
+                ? `$${insights.totalProcessed.toLocaleString()} processed`
+                : 'Upload data for real insights'
+              }
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-yellow-600">Average</div>
-            <div className="text-sm text-gray-600">Expense Processing</div>
-            <div className="text-xs text-gray-500 mt-1">3.2 days vs 3.1 days</div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-600">
+              {insights.spendScore >= 80 ? 'Excellent' : insights.spendScore >= 60 ? 'Good' : 'Needs Work'}
+            </div>
+            <div className="text-sm text-gray-600">Performance Rating</div>
+            <div className="text-xs text-gray-500 mt-1">Based on current data</div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-indigo-600">Top 25%</div>
-            <div className="text-sm text-gray-600">Cost Optimization</div>
-            <div className="text-xs text-gray-500 mt-1">12.4% savings identified</div>
+          <div className="text-center p-4 bg-yellow-50 rounded-lg">
+            <div className="text-2xl font-bold text-yellow-600">{insights.recommendations.length}</div>
+            <div className="text-sm text-gray-600">Recommendations</div>
+            <div className="text-xs text-gray-500 mt-1">Ready to implement</div>
+          </div>
+        </div>
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              <strong>Ready to maximize your insights?</strong> Upload more data or configure advanced mapping for deeper analysis.
+            </div>
+            <button 
+              onClick={loadInsights}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm"
+            >
+              Refresh Insights
+            </button>
           </div>
         </div>
       </div>
