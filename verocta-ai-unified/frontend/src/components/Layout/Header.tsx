@@ -10,6 +10,7 @@ const Header: React.FC = () => {
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
     { name: 'Services', href: '/services' },
+    { name: 'Dashboard', href: '/dashboard' },
     { name: 'Contact', href: '/contact' },
   ]
 
@@ -21,9 +22,7 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">V</span>
-            </div>
+            <img src="/src/assets/verocta-logo.jpg" alt="VeroctaAI" className="w-8 h-8 rounded-lg object-cover" />
             <span className="text-xl font-bold text-gray-900">VeroctaAI</span>
           </Link>
 
@@ -45,12 +44,18 @@ const Header: React.FC = () => {
           </div>
 
           {/* CTA Button */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex space-x-3">
             <Link
-              to="/contact"
+              to="/login"
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/dashboard"
               className="btn-primary"
             >
-              Get Started
+              Dashboard
             </Link>
           </div>
 

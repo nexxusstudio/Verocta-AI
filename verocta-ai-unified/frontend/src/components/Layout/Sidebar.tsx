@@ -22,9 +22,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const { user, logout } = useAuth()
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+    { name: 'Dashboard Home', href: '/dashboard', icon: HomeIcon },
     { name: 'Upload Data', href: '/dashboard/upload', icon: CloudArrowUpIcon },
-    { name: 'Insights', href: '/dashboard/insights', icon: ChartBarIcon },
+    { name: 'Insights Engine', href: '/dashboard/insights', icon: ChartBarIcon },
     { name: 'Reports', href: '/dashboard/reports', icon: DocumentTextIcon },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCardIcon },
     { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
@@ -53,10 +53,10 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         open ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <div className="flex items-center">
-            <img src="/src/assets/verocta-logo.svg" alt="Verocta" className="h-8 w-auto" />
-            <span className="ml-2 text-xl font-bold text-gray-900">Verocta</span>
-          </div>
+          <Link to="/" className="flex items-center">
+            <img src="/src/assets/verocta-logo.jpg" alt="VeroctaAI" className="h-8 w-8 rounded object-cover" />
+            <span className="ml-2 text-xl font-bold text-gray-900">VeroctaAI</span>
+          </Link>
           <button
             onClick={onClose}
             className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500"

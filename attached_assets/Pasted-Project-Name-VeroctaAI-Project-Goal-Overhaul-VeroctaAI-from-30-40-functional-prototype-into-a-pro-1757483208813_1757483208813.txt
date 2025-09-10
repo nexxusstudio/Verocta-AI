@@ -1,0 +1,30 @@
+Project Name: VeroctaAI
+Project Goal: Overhaul VeroctaAI from 30-40% functional prototype into a professional financial analytics SaaS platform with full navigation, branding, dashboard enhancements, data upload, insights engine, SpendScore, reports, PDF generation, and button functionality.
+Target User: Businesses and individuals seeking spending insights and optimization.
+Technology Stack:
+
+Backend Language: Python
+Backend Framework: Flask
+Frontend Language: HTML, CSS, JavaScript (React/Next.js)
+Database: PostgreSQL (SQLite for dev)
+Styling: Tailwind CSS
+Charts: Recharts/Chart.js
+PDF Generation: ReportLab
+State Management: React Query/Redux
+API Integration: Axios/fetch with JWT
+Other: Pandas for data processing, bcrypt for auth, gspread for Sheets.
+
+Features to Implement:
+
+Navigation System: Global header with logo, menu dropdowns, search, breadcrumbs, back/home buttons, mobile hamburger; structure: Home/Dashboard, Data Upload (interface/mapping), Insights Engine (user/upload/category), Reports (gallery/custom/PDF), Settings (profile/preferences), Help; smooth transitions, active indicators, quick actions.
+Branding/Logo: Place logo in header, login, PDFs, loading screens, favicon; consistent colors, typography, hierarchy.
+Dashboard Enhancement: Metrics cards (total spend, SpendScore with RAG/history, category breakdown, activity feed); interactive charts (line/bar/donut/heat/scatter); quick actions panel.
+Data Upload: Drag/drop interface for CSV/Excel/PDF; basic/advanced mapping (auto-detect, rules, templates, validation); progress/errors.
+Insights Engine: User-based (personality/patterns/goals/comparisons/recommendations); upload-based (volume/patterns/anomalies/trends/vendors); categories: financial health, spending behavior, budget performance, vendor intelligence; display with overview/cards/subpages.
+SpendScore System: Weighted algorithm (frequency 15%, diversity 10%, adherence 20%, redundancy 15%, spikes 20%, waste 20%); RAG scoring (green/amber/red with rewards); display meter, history, breakdown, suggestions, badges.
+Reports Management: Types (executive/detailed/budget/vendor); visuals (pie/bar/line/donut/heat/scatter); interactive (date/filter/export/drill-down/comparison); button actions.
+PDF Generation: Layout (cover/summary/analysis/insights/actions); dynamic branding, charts, customizable, multi-language.
+Button Functionality: Navigation (home/back/menu); actions (upload/generate/download/save/refresh); interactive (chart/filter/sort/toggle); states (loading/disabled/success/error).
+Content/Context: Professional tone, error messages, help text; smart defaults, adaptive UI.
+Technical: Performance (<3s loads, smooth animations, responsive, offline); security (encryption, auth, audits); scalability (caching, optimizations).
+QA Checklist: Test navigation, features, visuals, UX.
