@@ -1,12 +1,39 @@
 import React, { useState, useEffect } from 'react'
 import { apiClient } from '../utils/api'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement
+} from 'chart.js'
+import { Bar, Doughnut, Line } from 'react-chartjs-2'
 import { 
   DocumentTextIcon, 
   TrashIcon, 
   EyeIcon,
   PlusIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ArrowDownTrayIcon,
+  ChartPieIcon
 } from '@heroicons/react/24/outline'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement
+)
 
 interface Report {
   id: number
@@ -25,6 +52,13 @@ interface Report {
     transactions?: number
     total_amount?: number
     categories?: number
+    filename?: string
+    top_categories?: string[]
+    spend_score?: number
+    waste_percentage?: number
+    duplicates_found?: number
+    upload_timestamp?: string
+    raw_analysis?: any
   }
 }
 
@@ -57,7 +91,78 @@ const ReportsManager: React.FC = () => {
       setReports(reports.filter(r => r.id !== reportId))
     } catch (error) {
       console.error('Failed to delete report:', error)
+      alert('Failed to delete report. Please try again.')
     }
+  }
+
+  const downloadReportPDF = async (reportId: number) => {
+    try {
+      const response = await fetch(`/api/reports/${reportId}/pdf`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/pdf'
+        }
+      })
+      
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `report-${reportId}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } else {
+        alert('PDF generation not available yet. Feature coming soon!')
+      }
+    } catch (error) {
+      console.error('Failed to download PDF:', error)
+      alert('PDF download failed. Please try again.')
+    }
+  }
+
+  const generateChartsData = (report: Report) => {
+    // Category breakdown chart
+    const categoryData = {
+      labels: report.data.top_categories || ['Software', 'Office', 'Marketing', 'Travel', 'Other'],
+      datasets: [{
+        label: 'Spending by Category',
+        data: [25000, 18000, 22000, 15000, 33000], // Mock data - would come from real analysis
+        backgroundColor: [
+          '#3B82F6',
+          '#10B981',
+          '#F59E0B',
+          '#EF4444',
+          '#8B5CF6'
+        ]
+      }]
+    }
+
+    // SpendScore breakdown chart
+    const scoreData = {
+      labels: ['Frequency', 'Diversity', 'Budget', 'Redundancy', 'Spikes', 'Waste'],
+      datasets: [{
+        label: 'Score Components',
+        data: [85, 75, 90, 80, 70, 88], // Mock breakdown scores
+        backgroundColor: '#3B82F6'
+      }]
+    }
+
+    // Trend chart
+    const trendData = {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Monthly Spending',
+        data: [95000, 88000, 102000, 96000, 89000, 91000],
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4
+      }]
+    }
+
+    return { categoryData, scoreData, trendData }
   }
 
   const createSampleReport = async () => {
@@ -147,16 +252,25 @@ const ReportsManager: React.FC = () => {
             </div>
 
             <div className="mt-4 flex justify-between">
-              <button
-                onClick={() => setSelectedReport(report)}
-                className="flex items-center text-indigo-600 hover:text-indigo-800"
-              >
-                <EyeIcon className="h-4 w-4 mr-1" />
-                View Details
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setSelectedReport(report)}
+                  className="flex items-center text-indigo-600 hover:text-indigo-800 text-sm"
+                >
+                  <EyeIcon className="h-4 w-4 mr-1" />
+                  View Details
+                </button>
+                <button
+                  onClick={() => downloadReportPDF(report.id)}
+                  className="flex items-center text-green-600 hover:text-green-800 text-sm"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
+                  PDF
+                </button>
+              </div>
               <button
                 onClick={() => deleteReport(report.id)}
-                className="flex items-center text-red-600 hover:text-red-800"
+                className="flex items-center text-red-600 hover:text-red-800 text-sm"
               >
                 <TrashIcon className="h-4 w-4 mr-1" />
                 Delete
@@ -194,53 +308,196 @@ const ReportsManager: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* SpendScore */}
+                {/* Report Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 rounded-lg text-white">
+                    <div className="text-2xl font-bold">{selectedReport.spend_score}</div>
+                    <div className="text-blue-100 text-sm">SpendScore™</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 p-4 rounded-lg text-white">
+                    <div className="text-2xl font-bold">{selectedReport.insights.waste_percentage}%</div>
+                    <div className="text-red-100 text-sm">Waste Detected</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 rounded-lg text-white">
+                    <div className="text-2xl font-bold">{selectedReport.insights.duplicate_expenses}</div>
+                    <div className="text-orange-100 text-sm">Duplicates</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 rounded-lg text-white">
+                    <div className="text-2xl font-bold">{selectedReport.insights.savings_opportunities}</div>
+                    <div className="text-green-100 text-sm">Savings Opps</div>
+                  </div>
+                </div>
+
+                {/* Charts Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  {/* Category Breakdown Chart */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">SpendScore™</h4>
-                    <div className="flex items-center">
-                      <div className={`text-3xl font-bold ${getScoreColor(selectedReport.spend_score).split(' ')[0]}`}>
-                        {selectedReport.spend_score}
-                      </div>
-                      <ChartBarIcon className="h-8 w-8 ml-2 text-gray-400" />
+                    <h4 className="font-medium text-gray-900 mb-4 flex items-center">
+                      <ChartPieIcon className="h-5 w-5 mr-2" />
+                      Spending by Category
+                    </h4>
+                    <div className="h-64">
+                      <Doughnut 
+                        data={generateChartsData(selectedReport).categoryData}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              position: 'bottom' as const
+                            }
+                          }
+                        }}
+                      />
                     </div>
                   </div>
 
-                  {/* Key Metrics */}
+                  {/* SpendScore Breakdown */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Key Metrics</h4>
-                    <div className="space-y-2 text-sm">
+                    <h4 className="font-medium text-gray-900 mb-4 flex items-center">
+                      <ChartBarIcon className="h-5 w-5 mr-2" />
+                      SpendScore Components
+                    </h4>
+                    <div className="h-64">
+                      <Bar 
+                        data={generateChartsData(selectedReport).scoreData}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              max: 100
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spending Trend */}
+                <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                  <h4 className="font-medium text-gray-900 mb-4">Monthly Spending Trend</h4>
+                  <div className="h-64">
+                    <Line 
+                      data={generateChartsData(selectedReport).trendData}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            display: false
+                          }
+                        },
+                        scales: {
+                          y: {
+                            beginAtZero: false,
+                            ticks: {
+                              callback: function(value) {
+                                return '$' + (Number(value) / 1000).toFixed(0) + 'K'
+                              }
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Detailed Analysis */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Key Metrics */}
+                  <div className="bg-white border rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Detailed Metrics</h4>
+                    <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
-                        <span>Waste Percentage:</span>
-                        <span className="text-red-600">{selectedReport.insights.waste_percentage}%</span>
+                        <span className="text-gray-600">Total Transactions:</span>
+                        <span className="font-medium">{selectedReport.data.transactions?.toLocaleString() || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Duplicate Expenses:</span>
-                        <span>{selectedReport.insights.duplicate_expenses}</span>
+                        <span className="text-gray-600">Total Amount:</span>
+                        <span className="font-medium">{selectedReport.data.total_amount ? formatCurrency(selectedReport.data.total_amount) : 'N/A'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Spending Spikes:</span>
-                        <span>{selectedReport.insights.spending_spikes}</span>
+                        <span className="text-gray-600">Categories:</span>
+                        <span className="font-medium">{selectedReport.data.categories || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Savings Opportunities:</span>
-                        <span className="text-green-600">{selectedReport.insights.savings_opportunities}</span>
+                        <span className="text-gray-600">Spending Spikes:</span>
+                        <span className="font-medium text-blue-600">{selectedReport.insights.spending_spikes}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">File Source:</span>
+                        <span className="font-medium text-xs">{selectedReport.data.filename || 'Generated Report'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Performance Rating */}
+                  <div className="bg-white border rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Performance Rating</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Overall Score</span>
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(selectedReport.spend_score)}`}>
+                          {selectedReport.spend_score >= 80 ? 'Excellent' : 
+                           selectedReport.spend_score >= 60 ? 'Good' : 'Needs Work'}
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
+                          style={{ width: `${selectedReport.spend_score}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {selectedReport.spend_score >= 90 ? 'Outstanding financial management!' :
+                         selectedReport.spend_score >= 70 ? 'Good financial habits with room for improvement' :
+                         'Significant opportunities for optimization'}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Recommendations */}
-                <div className="mt-6">
-                  <h4 className="font-medium text-gray-900 mb-3">AI Recommendations</h4>
-                  <ul className="space-y-2">
+                {/* AI Recommendations */}
+                <div className="bg-white border rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <svg className="h-5 w-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" clipRule="evenodd" />
+                    </svg>
+                    AI-Powered Recommendations
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
                     {selectedReport.insights.recommendations.map((rec, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="flex-shrink-0 w-2 h-2 bg-indigo-600 rounded-full mt-2 mr-3"></span>
-                        <span className="text-sm text-gray-700">{rec}</span>
-                      </li>
+                      <div key={index} className="flex items-start p-3 bg-gray-50 rounded-lg">
+                        <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium mr-3">
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className="text-sm text-gray-900 font-medium">{rec}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Priority: {index < 2 ? 'High' : index < 4 ? 'Medium' : 'Low'}
+                          </p>
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="mt-6 flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-green-900">Ready to implement these recommendations?</p>
+                      <p className="text-xs text-green-700">Estimated potential savings: ${Math.floor(selectedReport.data.total_amount * 0.15 / 100) * 100 || 5000}</p>
+                    </div>
+                    <button 
+                      onClick={() => downloadReportPDF(selectedReport.id)}
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm flex items-center"
+                    >
+                      <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                      Download Full Report
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
