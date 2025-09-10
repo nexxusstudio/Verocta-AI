@@ -1,24 +1,30 @@
 import React, { useState, useCallback } from 'react'
 import { apiClient, endpoints } from '../utils/api'
+import DataMappingModal from './DataMappingModal'
 import { 
   CloudArrowUpIcon, 
   DocumentChartBarIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  CogIcon
 } from '@heroicons/react/24/outline'
 
 interface UploadedFile {
   file: File
   progress: number
-  status: 'uploading' | 'processing' | 'completed' | 'error'
+  status: 'uploading' | 'processing' | 'completed' | 'error' | 'mapping'
   result?: any
   error?: string
+  csvData?: any[]
+  mapping?: any
 }
 
 const UploadManager: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [mappingModalOpen, setMappingModalOpen] = useState(false)
+  const [currentMappingFile, setCurrentMappingFile] = useState<UploadedFile | null>(null)
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -60,67 +66,71 @@ const UploadManager: React.FC = () => {
       }
       
       setUploadedFiles(prev => [...prev, uploadFile])
-      processFile(file, uploadFile)
+      readCsvForMapping(file, uploadFile)
     })
   }
 
   const processFile = async (file: File, uploadFile: UploadedFile) => {
     try {
-      // Simulate file upload progress
-      const interval = setInterval(() => {
-        setUploadedFiles(prev => prev.map(uf => 
-          uf.file === file ? { ...uf, progress: Math.min(uf.progress + 10, 90) } : uf
-        ))
-      }, 100)
+      // Update progress to show uploading
+      setUploadedFiles(prev => prev.map(uf => 
+        uf.file === file ? { ...uf, progress: 10 } : uf
+      ))
 
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('company_name', 'Demo Company')
+      formData.append('company_name', 'VeroctaAI Demo Company')
 
-      // Simulate processing
-      setTimeout(() => {
-        clearInterval(interval)
-        setUploadedFiles(prev => prev.map(uf => 
-          uf.file === file ? { 
-            ...uf, 
-            progress: 100, 
-            status: 'processing'
-          } : uf
-        ))
+      // Real API call to backend
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
 
-        // Simulate completion after processing
-        setTimeout(() => {
-          const mockResult = {
-            transactions_processed: Math.floor(Math.random() * 1000) + 100,
-            spend_score: Math.floor(Math.random() * 30) + 70,
-            insights: {
-              waste_detected: Math.floor(Math.random() * 20) + 5,
-              duplicates_found: Math.floor(Math.random() * 10) + 1,
-              top_categories: ['Office Supplies', 'Software', 'Marketing'],
-              recommendations: [
-                'Consider consolidating vendor payments',
-                'Review subscription services for duplicates',
-                'Implement expense approval workflows'
-              ]
-            }
-          }
+      // Update progress
+      setUploadedFiles(prev => prev.map(uf => 
+        uf.file === file ? { ...uf, progress: 50, status: 'processing' } : uf
+      ))
 
-          setUploadedFiles(prev => prev.map(uf => 
-            uf.file === file ? { 
-              ...uf, 
-              status: 'completed',
-              result: mockResult
-            } : uf
-          ))
-        }, 2000)
-      }, 1000)
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      
+      // Process the real API response
+      const processedResult = {
+        transactions_processed: result.transaction_summary?.total_transactions || 0,
+        spend_score: result.spend_score || 0,
+        insights: {
+          waste_detected: Math.round(((result.score_breakdown?.waste_ratio || 0) * 100)),
+          duplicates_found: result.score_breakdown?.redundancy_count || 0,
+          top_categories: result.transaction_summary?.category_breakdown ? 
+            Object.keys(result.transaction_summary.category_breakdown).slice(0, 3) : [],
+          recommendations: result.ai_insights?.recommendations || [
+            'Upload processed successfully',
+            'View detailed insights in the Insights section'
+          ]
+        },
+        raw_result: result
+      }
+
+      setUploadedFiles(prev => prev.map(uf => 
+        uf.file === file ? { 
+          ...uf, 
+          progress: 100,
+          status: 'completed',
+          result: processedResult
+        } : uf
+      ))
 
     } catch (error) {
+      console.error('Upload error:', error)
       setUploadedFiles(prev => prev.map(uf => 
         uf.file === file ? { 
           ...uf, 
           status: 'error',
-          error: 'Upload failed. Please try again.'
+          error: error instanceof Error ? error.message : 'Upload failed. Please try again.'
         } : uf
       ))
     }
@@ -133,17 +143,87 @@ const UploadManager: React.FC = () => {
   const createReportFromFile = async (uploadFile: UploadedFile) => {
     try {
       const response = await apiClient.post('/reports', {
-        title: `Analysis: ${uploadFile.file.name}`,
+        title: `Financial Analysis: ${uploadFile.file.name}`,
         data: {
+          filename: uploadFile.file.name,
           transactions: uploadFile.result.transactions_processed,
-          total_amount: uploadFile.result.transactions_processed * 150, // Mock calculation
-          categories: uploadFile.result.insights.top_categories.length
+          spend_score: uploadFile.result.spend_score,
+          waste_percentage: uploadFile.result.insights.waste_detected,
+          duplicates_found: uploadFile.result.insights.duplicates_found,
+          top_categories: uploadFile.result.insights.top_categories,
+          recommendations: uploadFile.result.insights.recommendations,
+          upload_timestamp: new Date().toISOString(),
+          raw_analysis: uploadFile.result.raw_result
         }
       })
       alert('Report created successfully! View it in the Reports tab.')
     } catch (error) {
+      console.error('Report creation error:', error)
       alert('Failed to create report. Please try again.')
     }
+  }
+
+  const readCsvForMapping = async (file: File, uploadFile: UploadedFile) => {
+    try {
+      const text = await file.text()
+      const lines = text.split('\n')
+      const headers = lines[0].split(',')
+      
+      // Parse a few rows for preview
+      const csvData = []
+      for (let i = 0; i < Math.min(6, lines.length); i++) {
+        const row: any = {}
+        const values = lines[i].split(',')
+        headers.forEach((header, index) => {
+          row[header.trim()] = values[index]?.trim() || ''
+        })
+        csvData.push(row)
+      }
+      
+      setUploadedFiles(prev => prev.map(uf => 
+        uf.file === file ? { 
+          ...uf, 
+          status: 'mapping',
+          csvData: csvData,
+          progress: 30
+        } : uf
+      ))
+      
+    } catch (error) {
+      console.error('CSV parsing error:', error)
+      setUploadedFiles(prev => prev.map(uf => 
+        uf.file === file ? { 
+          ...uf, 
+          status: 'error',
+          error: 'Failed to read CSV file'
+        } : uf
+      ))
+    }
+  }
+
+  const openMappingModal = (uploadFile: UploadedFile) => {
+    setCurrentMappingFile(uploadFile)
+    setMappingModalOpen(true)
+  }
+
+  const handleMappingConfirm = (mapping: any) => {
+    if (currentMappingFile) {
+      // Store mapping and proceed with actual processing
+      setUploadedFiles(prev => prev.map(uf => 
+        uf.file === currentMappingFile.file ? { 
+          ...uf, 
+          mapping: mapping,
+          status: 'uploading'
+        } : uf
+      ))
+      
+      // Now process the file with the mapping
+      processFile(currentMappingFile.file, {
+        ...currentMappingFile,
+        mapping: mapping
+      })
+    }
+    setCurrentMappingFile(null)
   }
 
   const getStatusIcon = (status: string) => {
@@ -151,6 +231,8 @@ const UploadManager: React.FC = () => {
       case 'uploading':
       case 'processing':
         return <ArrowPathIcon className="h-5 w-5 text-blue-500 animate-spin" />
+      case 'mapping':
+        return <CogIcon className="h-5 w-5 text-blue-500" />
       case 'completed':
         return <CheckCircleIcon className="h-5 w-5 text-green-500" />
       case 'error':
@@ -232,6 +314,7 @@ const UploadManager: React.FC = () => {
                     <p className="text-sm text-gray-500">
                       {uploadFile.status === 'uploading' && 'Uploading...'}
                       {uploadFile.status === 'processing' && 'Processing data...'}
+                      {uploadFile.status === 'mapping' && 'Ready for column mapping'}
                       {uploadFile.status === 'completed' && 'Analysis complete'}
                       {uploadFile.status === 'error' && uploadFile.error}
                     </p>
@@ -246,14 +329,33 @@ const UploadManager: React.FC = () => {
               </div>
 
               {/* Progress Bar */}
-              {(uploadFile.status === 'uploading' || uploadFile.status === 'processing') && (
+              {(uploadFile.status === 'uploading' || uploadFile.status === 'processing' || uploadFile.status === 'mapping') && (
                 <div className="mt-4">
                   <div className="bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        uploadFile.status === 'mapping' ? 'bg-blue-600' : 'bg-indigo-600'
+                      }`}
                       style={{ width: `${uploadFile.progress}%` }}
                     ></div>
                   </div>
+                </div>
+              )}
+
+              {/* Mapping Button */}
+              {uploadFile.status === 'mapping' && (
+                <div className="mt-4 p-4 bg-blue-50 rounded">
+                  <h4 className="font-medium text-gray-900 mb-2">Ready for Column Mapping</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Configure how your CSV columns map to our analysis fields.
+                  </p>
+                  <button
+                    onClick={() => openMappingModal(uploadFile)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm inline-flex items-center"
+                  >
+                    <CogIcon className="h-4 w-4 mr-2" />
+                    Configure Mapping
+                  </button>
                 </div>
               )}
 
@@ -279,12 +381,19 @@ const UploadManager: React.FC = () => {
                       <span className="ml-2 font-medium">{uploadFile.result.insights.duplicates_found}</span>
                     </div>
                   </div>
-                  <div className="mt-4">
+                  <div className="mt-4 flex space-x-3">
                     <button
                       onClick={() => createReportFromFile(uploadFile)}
                       className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm"
                     >
                       Create Full Report
+                    </button>
+                    <button
+                      onClick={() => openMappingModal(uploadFile)}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-sm inline-flex items-center"
+                    >
+                      <CogIcon className="h-4 w-4 mr-2" />
+                      Reconfigure Mapping
                     </button>
                   </div>
                 </div>
@@ -293,6 +402,17 @@ const UploadManager: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Data Mapping Modal */}
+      <DataMappingModal
+        isOpen={mappingModalOpen}
+        onClose={() => {
+          setMappingModalOpen(false)
+          setCurrentMappingFile(null)
+        }}
+        csvData={currentMappingFile?.csvData || []}
+        onConfirm={handleMappingConfirm}
+      />
     </div>
   )
 }
