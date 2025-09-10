@@ -183,6 +183,55 @@ def delete_report_endpoint(report_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/reports/<int:report_id>/pdf', methods=['GET'])
+@jwt_required()
+def download_report_pdf(report_id):
+    """Generate and download PDF report"""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        report = get_report_by_id(report_id, user['id'])
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+        
+        # Convert report to dict for PDF generation
+        report_data = report.to_dict()
+        
+        # Generate PDF using the existing PDF generator
+        try:
+            pdf_path = generate_report_pdf(
+                analysis_data={
+                    'spend_score': report_data.get('spend_score', 0),
+                    'total_transactions': report_data.get('data', {}).get('transactions', 0),
+                    'total_amount': report_data.get('data', {}).get('total_amount', 0),
+                    'filename': report_data.get('data', {}).get('filename', report_data.get('title', 'Report')),
+                    'suggestions': [{'text': rec, 'priority': 'Medium'} for rec in report_data.get('insights', {}).get('recommendations', [])],
+                    'category_breakdown': report_data.get('data', {}).get('top_categories', {}),
+                    'score_label': 'Excellent' if report_data.get('spend_score', 0) >= 80 else 'Good' if report_data.get('spend_score', 0) >= 60 else 'Needs Work',
+                    'score_color': 'Green' if report_data.get('spend_score', 0) >= 80 else 'Amber' if report_data.get('spend_score', 0) >= 60 else 'Red'
+                },
+                transactions=[],
+                company_name=user.get('company', 'VeroctaAI Demo')
+            )
+            
+            # Return the PDF file
+            return send_file(
+                pdf_path,
+                as_attachment=True,
+                download_name=f'verocta-report-{report_id}.pdf',
+                mimetype='application/pdf'
+            )
+            
+        except Exception as pdf_error:
+            logging.error(f"PDF generation error: {str(pdf_error)}")
+            return jsonify({'error': 'PDF generation failed. This feature is still in development.'}), 500
+        
+    except Exception as e:
+        logging.error(f"PDF download error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/reports', methods=['POST'])
 @jwt_required()
 def create_report_endpoint():

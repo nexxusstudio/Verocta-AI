@@ -488,7 +488,7 @@ const ReportsManager: React.FC = () => {
                   <div className="mt-6 flex justify-between items-center p-4 bg-green-50 rounded-lg">
                     <div>
                       <p className="text-sm font-medium text-green-900">Ready to implement these recommendations?</p>
-                      <p className="text-xs text-green-700">Estimated potential savings: ${Math.floor(selectedReport.data.total_amount * 0.15 / 100) * 100 || 5000}</p>
+                      <p className="text-xs text-green-700">Estimated potential savings: ${Math.floor((selectedReport.data.total_amount || 50000) * 0.15 / 100) * 100}</p>
                     </div>
                     <button 
                       onClick={() => downloadReportPDF(selectedReport.id)}
