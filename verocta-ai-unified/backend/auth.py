@@ -15,6 +15,15 @@ users_db = {
         "created_at": datetime.now(),
         "company": "Verocta AI",
         "is_active": True
+    },
+    "verocta@devstudio.com": {
+        "id": 2,
+        "email": "verocta@devstudio.com",
+        "password": bcrypt.hashpw("veroctaai".encode('utf-8'), bcrypt.gensalt()),
+        "role": "user",
+        "created_at": datetime.now(),
+        "company": "DevStudio",
+        "is_active": True
     }
 }
 
@@ -37,7 +46,7 @@ def create_user(email, password, company=None, role="user"):
     if email in users_db:
         return None
     
-    user_id = len(users_db) + 1
+    user_id = max([user['id'] for user in users_db.values()]) + 1 if users_db else 1
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     
     user = {
