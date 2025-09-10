@@ -1,0 +1,16 @@
+Complete the project funtionality.
+
+Navigations: Its really hard to navigate through all the features like i am on one page it it impossible to go back to home this is just one example the complete navigation of the project is broken can you revamp the complete project navigation If I am on Demo Dashbaord there is no option to go back home or if I am on one page its really impossible to change page. Revamp the complete project Implement proper navigation to all the pages, subpages, butttons, complete Navigations.
+
+Buttons. All the buttons click but therer is not even a single button activitiy. Add all the buttons activity. Complete the project.
+
+    Funtionality. The complete project only shows some 30-40% funtionality, no complete project reports on the spot, no PDF genreations The Project covers only 30-40% of the Project.
+
+Dahsboard is Okay Okay but lacks proper insights. Dashbaord lacks proper insights.
+
+Upload Data. Upload data lacks Maping options, Advance Maping, etc.
+
+Insight: THe Insight Eninge is broken it only shows static informations not categorized by data or any kind of usage. The Insight Engine should be based on User, Data and Uploads. Revamp the complete Insight. Insight Page is completely static does not count any of Insight. Revamp the complete Insight. I want to implement a complete Insight feature Insight will be professional, based on data (1), based on user (2 major), Based on uploads, Etc. Revamp the complete Insight. The Front will show based on user then there will be card which will be based on uploads and another Insight Engine inside uload data. Revamp the complete Insight Engine with Proper analysis. First it will be with user analyis data it theere is no analysis data then The main part is with upload data create a card for uploaded data and create a subpage with the complete SpendScore Insight Engine Analysis for the Uplaoded data.
+
+Reports. The reports does not even . The reports management only shows the uplaod data card few matrices. Create a complete proper report genreation for the complete report there not even a single Graph, CHart or any of on the report page on view details add graph, chart or any on the reports. No PDF report the project don
+J
